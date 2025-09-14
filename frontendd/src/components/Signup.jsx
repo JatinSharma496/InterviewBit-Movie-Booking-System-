@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+// Hardcoded API URL
+const API_BASE_URL = 'http://localhost:8080';
 
 function Signup() {
   const [formData, setFormData] = useState({
@@ -8,7 +10,8 @@ function Signup() {
     email: '',
     password: '',
     confirmPassword: '',
-    phoneNumber: ''
+    phoneNumber: '',
+    isAdmin: false
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,9 +20,10 @@ function Signup() {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: type === 'checkbox' ? checked : value
     });
   };
 
@@ -40,7 +44,7 @@ function Signup() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8080/api/users/signup', {
+      const response = await fetch(`${API_BASE_URL}/api/users/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -49,14 +53,20 @@ function Signup() {
           name: formData.name,
           email: formData.email,
           password: formData.password,
-          phoneNumber: formData.phoneNumber
+          phoneNumber: formData.phoneNumber,
+          isAdmin: formData.isAdmin
         }),
       });
 
       if (response.ok) {
         const user = await response.json();
         dispatch({ type: 'SET_CURRENT_USER', payload: user });
-        navigate('/');
+        // Redirect admin users to admin panel, regular users to home
+        if (user.is_admin) {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
       } else {
         setError('Signup failed. Email may already be in use.');
       }
@@ -164,6 +174,20 @@ function Signup() {
                 value={formData.confirmPassword}
                 onChange={handleChange}
               />
+            </div>
+            
+            <div className="flex items-center">
+              <input
+                id="isAdmin"
+                name="isAdmin"
+                type="checkbox"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                checked={formData.isAdmin}
+                onChange={handleChange}
+              />
+              <label htmlFor="isAdmin" className="ml-2 block text-sm text-gray-700">
+                Sign up as admin
+              </label>
             </div>
           </div>
 

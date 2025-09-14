@@ -1,4 +1,4 @@
-import { FaTimes, FaImage, FaCalendar, FaCalendarAlt, FaClock, FaDollarSign, FaChair, FaBuilding, FaFilm } from 'react-icons/fa';
+import { FaTimes, FaImage, FaCalendar, FaCalendarAlt, FaClock, FaChair, FaBuilding, FaFilm } from 'react-icons/fa';
 
 // Movie Modal Component
 export function MovieModal({ show, onClose, onSubmit, data, setData, cinemas, isEdit }) {
@@ -10,7 +10,7 @@ export function MovieModal({ show, onClose, onSubmit, data, setData, cinemas, is
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h3 className="text-2xl font-bold text-gray-900 flex items-center">
@@ -163,8 +163,8 @@ export function CinemaModal({ show, onClose, onSubmit, data, setData, isEdit }) 
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg">
+    <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h3 className="text-2xl font-bold text-gray-900 flex items-center">
             <FaBuilding className="mr-3 text-indigo-600" />
@@ -247,8 +247,8 @@ export function ScreenModal({ show, onClose, onSubmit, data, setData, cinemas, i
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg">
+    <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h3 className="text-2xl font-bold text-gray-900 flex items-center">
             <FaChair className="mr-3 text-indigo-600" />
@@ -371,10 +371,14 @@ export function ShowModal({ show, onClose, onSubmit, data, setData, movies, scre
     movies.filter(movie => movie.cinema_id === parseInt(data.cinema_id)) : 
     movies;
 
+  // Get selected movie for release date validation
+  const selectedMovie = filteredMovies.find(movie => movie.id === parseInt(data?.movie_id));
+  const minDate = selectedMovie?.release_date || new Date().toISOString().split('T')[0];
+
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg">
+    <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h3 className="text-2xl font-bold text-gray-900 flex items-center">
             <FaCalendarAlt className="mr-3 text-indigo-600" />
@@ -466,9 +470,15 @@ export function ShowModal({ show, onClose, onSubmit, data, setData, movies, scre
                 type="date"
                 value={data?.date || ''}
                 onChange={(e) => setData({...data, date: e.target.value})}
+                min={minDate}
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 required
               />
+              {selectedMovie?.release_date && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Movie releases on: {selectedMovie.release_date}
+                </p>
+              )}
             </div>
 
             <div>
@@ -486,7 +496,7 @@ export function ShowModal({ show, onClose, onSubmit, data, setData, movies, scre
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Ticket Price</label>
             <div className="relative">
-              <FaDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 font-semibold">₹</span>
               <input
                 type="number"
                 step="0.01"

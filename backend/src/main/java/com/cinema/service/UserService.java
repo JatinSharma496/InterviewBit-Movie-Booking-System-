@@ -5,8 +5,8 @@ import com.cinema.dto.SignupRequest;
 import com.cinema.dto.UserDto;
 import com.cinema.entity.User;
 import com.cinema.repository.UserRepository;
-import com.cinema.util.PasswordUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 public class UserService {
     
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
     
     public UserDto createUser(UserDto userDto) {
         if (userRepository.existsByEmail(userDto.getEmail())) {
@@ -28,7 +29,7 @@ public class UserService {
         User user = new User();
         user.setEmail(userDto.getEmail());
         user.setName(userDto.getName());
-        user.setPassword(PasswordUtil.hashPassword(userDto.getPassword()));
+        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
         user.setPhoneNumber(userDto.getPhoneNumber());
         user.setIsAdmin(userDto.getIsAdmin());
         
@@ -41,14 +42,32 @@ public class UserService {
             throw new RuntimeException("User with email " + signupRequest.getEmail() + " already exists");
         }
         
+        System.out.println("=== SIGNUP DEBUG ===");
+        System.out.println("Received isAdmin: " + signupRequest.getIsAdmin());
+        System.out.println("isAdmin type: " + (signupRequest.getIsAdmin() != null ? signupRequest.getIsAdmin().getClass().getSimpleName() : "null"));
+        
         User user = new User();
         user.setEmail(signupRequest.getEmail());
         user.setName(signupRequest.getName());
-        user.setPassword(PasswordUtil.hashPassword(signupRequest.getPassword()));
+        user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
         user.setPhoneNumber(signupRequest.getPhoneNumber());
-        user.setIsAdmin(signupRequest.getIsAdmin() != null ? signupRequest.getIsAdmin() : false);
+        
+        // Explicitly set isAdmin - don't rely on default value
+        Boolean adminValue = signupRequest.getIsAdmin();
+        if (adminValue == null) {
+            adminValue = false;
+        }
+        user.setIsAdmin(adminValue);
+        
+        System.out.println("User entity isAdmin before save: " + user.getIsAdmin());
+        System.out.println("Admin value set: " + adminValue);
         
         User savedUser = userRepository.save(user);
+        
+        System.out.println("User entity isAdmin after save: " + savedUser.getIsAdmin());
+        System.out.println("User ID: " + savedUser.getId());
+        System.out.println("===================");
+        
         return convertToDto(savedUser);
     }
     
@@ -56,7 +75,7 @@ public class UserService {
         User user = userRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new RuntimeException("Invalid email or password"));
         
-        if (!PasswordUtil.verifyPassword(loginRequest.getPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid email or password");
         }
         

@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/shows")
@@ -36,15 +37,23 @@ public class ShowController {
     }
 
     @PostMapping
-    public ResponseEntity<ShowDto> createShow(@RequestBody ShowDto showDto) {
-        ShowDto createdShow = showService.createShow(showDto);
-        return new ResponseEntity<>(createdShow, HttpStatus.CREATED);
+    public ResponseEntity<?> createShow(@RequestBody ShowDto showDto) {
+        try {
+            ShowDto createdShow = showService.createShow(showDto);
+            return new ResponseEntity<>(createdShow, HttpStatus.CREATED);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ShowDto> updateShow(@PathVariable Long id, @RequestBody ShowDto showDto) {
-        ShowDto updatedShow = showService.updateShow(id, showDto);
-        return ResponseEntity.ok(updatedShow);
+    public ResponseEntity<?> updateShow(@PathVariable Long id, @RequestBody ShowDto showDto) {
+        try {
+            ShowDto updatedShow = showService.updateShow(id, showDto);
+            return ResponseEntity.ok(updatedShow);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     @DeleteMapping("/{id}")

@@ -10,7 +10,8 @@ import java.time.LocalTime;
 import java.util.List;
 
 @Entity
-@Table(name = "shows")
+@Table(name = "shows", 
+       uniqueConstraints = @UniqueConstraint(columnNames = {"screen_id", "date", "time"}))
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

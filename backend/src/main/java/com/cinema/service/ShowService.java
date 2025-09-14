@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -50,12 +51,19 @@ public class ShowService {
         Screen screen = screenRepository.findById(showDto.getScreenId())
                 .orElseThrow(() -> new RuntimeException("Screen not found with id: " + showDto.getScreenId()));
 
-        // Validate that movie and screen belong to the same cinema
-        if (!movie.getCinema().getId().equals(screen.getCinema().getId())) {
-            throw new RuntimeException("Movie and screen must belong to the same cinema. " +
-                    "Movie belongs to cinema: " + movie.getCinema().getName() + 
-                    ", but screen belongs to cinema: " + screen.getCinema().getName());
+        // Movies are now independent entities that can be shown in any cinema
+        // The cinema association is through the screen
+
+        // Validate show date is not before movie release date
+        if (movie.getReleaseDate() != null && showDto.getDate().isBefore(movie.getReleaseDate())) {
+            throw new RuntimeException("Show cannot be scheduled before movie release date. " +
+                    "Movie release date: " + movie.getReleaseDate() + 
+                    ", Show date: " + showDto.getDate());
         }
+
+        // Validate no time conflicts on the same screen
+        validateNoTimeConflicts(showDto.getScreenId(), showDto.getDate(), showDto.getTime(), 
+                              movie.getDuration(), null);
 
         Show show = new Show();
         show.setDate(showDto.getDate());
@@ -79,12 +87,19 @@ public class ShowService {
         Screen screen = screenRepository.findById(showDto.getScreenId())
                 .orElseThrow(() -> new RuntimeException("Screen not found with id: " + showDto.getScreenId()));
 
-        // Validate that movie and screen belong to the same cinema
-        if (!movie.getCinema().getId().equals(screen.getCinema().getId())) {
-            throw new RuntimeException("Movie and screen must belong to the same cinema. " +
-                    "Movie belongs to cinema: " + movie.getCinema().getName() + 
-                    ", but screen belongs to cinema: " + screen.getCinema().getName());
+        // Movies are now independent entities that can be shown in any cinema
+        // The cinema association is through the screen
+
+        // Validate show date is not before movie release date
+        if (movie.getReleaseDate() != null && showDto.getDate().isBefore(movie.getReleaseDate())) {
+            throw new RuntimeException("Show cannot be scheduled before movie release date. " +
+                    "Movie release date: " + movie.getReleaseDate() + 
+                    ", Show date: " + showDto.getDate());
         }
+
+        // Validate no time conflicts on the same screen (excluding current show)
+        validateNoTimeConflicts(showDto.getScreenId(), showDto.getDate(), showDto.getTime(), 
+                              movie.getDuration(), id);
 
         show.setDate(showDto.getDate());
         show.setTime(showDto.getTime());
@@ -102,6 +117,47 @@ public class ShowService {
         showRepository.deleteById(id);
     }
 
+    @Transactional
+    public void deleteShowsByMovieId(Long movieId) {
+        List<Show> shows = showRepository.findAllByMovieId(movieId);
+        showRepository.deleteAll(shows);
+    }
+
+    @Transactional
+    public void deleteShowsByCinemaId(Long cinemaId) {
+        List<Show> shows = showRepository.findAllByCinemaId(cinemaId);
+        showRepository.deleteAll(shows);
+    }
+
+    private void validateNoTimeConflicts(Long screenId, java.time.LocalDate date, LocalTime startTime, 
+                                       Integer durationMinutes, Long excludeShowId) {
+        LocalTime endTime = startTime.plusMinutes(durationMinutes);
+        
+        List<Show> existingShows;
+        if (excludeShowId != null) {
+            existingShows = showRepository.findShowsByScreenAndDateExcluding(screenId, date, excludeShowId);
+        } else {
+            existingShows = showRepository.findShowsByScreenAndDate(screenId, date);
+        }
+        
+        for (Show existingShow : existingShows) {
+            LocalTime existingStartTime = existingShow.getTime();
+            LocalTime existingEndTime = existingStartTime.plusMinutes(existingShow.getMovie().getDuration());
+            
+            // Check for time overlap
+            if (isTimeOverlapping(startTime, endTime, existingStartTime, existingEndTime)) {
+                throw new RuntimeException("Time conflict detected! Another show '" + existingShow.getMovie().getTitle() + 
+                        "' is already scheduled on this screen from " + existingStartTime + 
+                        " to " + existingEndTime + " on " + existingShow.getDate());
+            }
+        }
+    }
+    
+    private boolean isTimeOverlapping(LocalTime start1, LocalTime end1, LocalTime start2, LocalTime end2) {
+        // Two time ranges overlap if one starts before the other ends and vice versa
+        return start1.isBefore(end2) && start2.isBefore(end1);
+    }
+
     private ShowDto convertToDto(Show show) {
         ShowDto dto = new ShowDto();
         dto.setId(show.getId());
@@ -115,6 +171,8 @@ public class ShowService {
         dto.setScreenName(show.getScreen().getName());
         dto.setCinemaId(show.getScreen().getCinema().getId());
         dto.setCinemaName(show.getScreen().getCinema().getName());
+        dto.setCinemaLocation(show.getScreen().getCinema().getLocation());
+        dto.setCinemaContactInfo(show.getScreen().getCinema().getContactInfo());
         return dto;
     }
 }

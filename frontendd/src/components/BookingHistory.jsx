@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { FaTicketAlt, FaCalendarAlt, FaClock, FaMapMarkerAlt, FaChair, FaTimes, FaEye } from 'react-icons/fa';
+// Hardcoded API URL
+const API_BASE_URL = 'http://localhost:8080';
 
 function BookingHistory() {
   const { state } = useApp();
@@ -17,7 +19,7 @@ function BookingHistory() {
     const fetchBookings = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`http://localhost:8080/api/bookings/user/${userId}`);
+        const response = await fetch(`${API_BASE_URL}/api/bookings/user/${userId}`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -45,7 +47,7 @@ function BookingHistory() {
     event.stopPropagation(); // Prevent triggering the booking click
     if (window.confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
       try {
-        const response = await fetch(`http://localhost:8080/api/bookings/${bookingId}/cancel`, {
+        const response = await fetch(`${API_BASE_URL}/api/bookings/${bookingId}/cancel`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

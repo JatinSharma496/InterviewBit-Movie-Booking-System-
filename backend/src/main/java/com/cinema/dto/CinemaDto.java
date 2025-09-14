@@ -26,5 +26,4 @@ public class CinemaDto {
     private String contactInfo;
     
     private List<ScreenDto> screens;
-    private List<MovieDto> movies;
 }

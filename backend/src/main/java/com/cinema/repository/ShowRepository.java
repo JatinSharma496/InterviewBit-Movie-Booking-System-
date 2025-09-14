@@ -26,6 +26,22 @@ public interface ShowRepository extends JpaRepository<Show, Long> {
     @Query("SELECT s FROM Show s LEFT JOIN FETCH s.bookings b LEFT JOIN FETCH b.seats WHERE s.id = :id")
     Optional<Show> findByIdWithBookingsAndSeats(@Param("id") Long id);
     
-    @Query("SELECT DISTINCT s FROM Show s LEFT JOIN FETCH s.movie m LEFT JOIN FETCH s.screen sc WHERE s.movie.cinema.id = :cinemaId AND s.isActive = true")
+    @Query("SELECT DISTINCT s FROM Show s LEFT JOIN FETCH s.movie m LEFT JOIN FETCH s.screen sc WHERE s.screen.cinema.id = :cinemaId AND s.isActive = true")
     List<Show> findByCinemaIdWithMovieAndScreen(@Param("cinemaId") Long cinemaId);
+    
+    // Get all shows on a specific screen and date for conflict checking
+    @Query("SELECT s FROM Show s LEFT JOIN FETCH s.movie WHERE s.screen.id = :screenId AND s.date = :date AND s.isActive = true")
+    List<Show> findShowsByScreenAndDate(@Param("screenId") Long screenId, @Param("date") LocalDate date);
+    
+    // Get all shows on a specific screen and date excluding a specific show (for updates)
+    @Query("SELECT s FROM Show s LEFT JOIN FETCH s.movie WHERE s.screen.id = :screenId AND s.date = :date AND s.isActive = true AND s.id != :excludeShowId")
+    List<Show> findShowsByScreenAndDateExcluding(@Param("screenId") Long screenId, @Param("date") LocalDate date, @Param("excludeShowId") Long excludeShowId);
+    
+    // Find all shows for a specific movie (for cascade delete)
+    @Query("SELECT s FROM Show s WHERE s.movie.id = :movieId")
+    List<Show> findAllByMovieId(@Param("movieId") Long movieId);
+    
+    // Find all shows for screens in a specific cinema (for cascade delete)
+    @Query("SELECT s FROM Show s WHERE s.screen.cinema.id = :cinemaId")
+    List<Show> findAllByCinemaId(@Param("cinemaId") Long cinemaId);
 }

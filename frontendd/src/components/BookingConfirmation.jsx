@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { FaCheckCircle, FaTicketAlt, FaCalendarAlt, FaClock, FaMapMarkerAlt, FaChair, FaUser, FaEnvelope, FaPhone } from 'react-icons/fa';
+// Hardcoded API URL
+const API_BASE_URL = 'http://localhost:8080';
 
 function BookingConfirmation() {
   const { bookingId } = useParams();
@@ -12,7 +14,7 @@ function BookingConfirmation() {
     const fetchBooking = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`http://localhost:8080/api/bookings/${bookingId}`);
+        const response = await fetch(`${API_BASE_URL}/api/bookings/${bookingId}`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }

@@ -11,13 +11,13 @@ function AdminProtectedRoute({ children }) {
   }
   
   // Check if user is an admin
-  if (!state.currentUser.isAdmin) {
+  if (!state.currentUser.is_admin) {
     return <Navigate to="/" replace />;
   }
   
   // Automatically set admin mode for admin users
   useEffect(() => {
-    if (state.currentUser?.isAdmin && !state.isAdmin) {
+    if (state.currentUser?.is_admin && !state.isAdmin) {
       dispatch({ type: 'TOGGLE_ADMIN' });
     }
   }, [state.currentUser, state.isAdmin, dispatch]);

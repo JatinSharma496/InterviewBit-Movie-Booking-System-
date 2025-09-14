@@ -20,6 +20,7 @@ public class CinemaService {
     
     private final CinemaRepository cinemaRepository;
     private final MovieRepository movieRepository;
+    private final ShowService showService;
     
     public List<CinemaDto> getAllCinemas() {
         return cinemaRepository.findAllWithScreensAndMovies().stream()
@@ -34,9 +35,9 @@ public class CinemaService {
     }
     
     public List<MovieDto> getMoviesByCinemaId(Long cinemaId) {
-        return movieRepository.findByCinemaIdAndIsActiveTrue(cinemaId).stream()
-                .map(this::convertMovieToDto)
-                .collect(Collectors.toList());
+        // Movies are not directly associated with cinemas in this model
+        // This method would need to be implemented differently based on business requirements
+        return List.of();
     }
 
     @Transactional
@@ -63,6 +64,9 @@ public class CinemaService {
 
     @Transactional
     public void deleteCinema(Long id) {
+        // First delete all shows in this cinema
+        showService.deleteShowsByCinemaId(id);
+        // Then delete the cinema (screens and movies will be cascade deleted by JPA)
         cinemaRepository.deleteById(id);
     }
     
@@ -79,11 +83,8 @@ public class CinemaService {
                     .collect(Collectors.toList()));
         }
         
-        // Load movies separately to avoid N+1 query issues
-        List<MovieDto> movies = movieRepository.findByCinemaIdAndIsActiveTrue(cinema.getId()).stream()
-                .map(this::convertMovieToDto)
-                .collect(Collectors.toList());
-        dto.setMovies(movies);
+        // Movies are not directly associated with cinemas in this model
+        // dto.setMovies() is not available in CinemaDto
         
         return dto;
     }
@@ -110,7 +111,7 @@ public class CinemaService {
         dto.setReleaseDate(movie.getReleaseDate());
         dto.setPosterUrl(movie.getPosterUrl());
         dto.setIsActive(movie.getIsActive());
-        dto.setCinemaId(movie.getCinema().getId());
+        // Movies don't have direct cinema relationship in this model
         return dto;
     }
 }

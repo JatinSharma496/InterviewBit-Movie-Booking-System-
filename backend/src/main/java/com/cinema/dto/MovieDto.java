@@ -39,5 +39,7 @@ public class MovieDto {
     private Boolean isActive = true;
     
     private Long cinemaId;
+    private String cinemaName;
+    
     private List<ShowDto> shows;
 }

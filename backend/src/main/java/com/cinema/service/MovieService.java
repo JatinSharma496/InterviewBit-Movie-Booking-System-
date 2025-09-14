@@ -23,6 +23,7 @@ public class MovieService {
     private final MovieRepository movieRepository;
     private final ShowRepository showRepository;
     private final CinemaRepository cinemaRepository;
+    private final ShowService showService;
 
     public List<MovieDto> getAllMovies() {
         return movieRepository.findAll().stream()
@@ -53,7 +54,14 @@ public class MovieService {
         movie.setReleaseDate(movieDto.getReleaseDate());
         movie.setPosterUrl(movieDto.getPosterUrl());
         movie.setIsActive(movieDto.getIsActive());
-        // Cinema association would be handled here if needed
+        
+        // Set cinema if provided
+        if (movieDto.getCinemaId() != null) {
+            Cinema cinema = cinemaRepository.findById(movieDto.getCinemaId())
+                    .orElseThrow(() -> new RuntimeException("Cinema not found with id: " + movieDto.getCinemaId()));
+            movie.setCinema(cinema);
+        }
+        
         Movie savedMovie = movieRepository.save(movie);
         return convertMovieToDto(savedMovie);
     }
@@ -71,6 +79,13 @@ public class MovieService {
         movie.setReleaseDate(movieDto.getReleaseDate());
         movie.setPosterUrl(movieDto.getPosterUrl());
         movie.setIsActive(movieDto.getIsActive());
+        
+        // Update cinema if provided
+        if (movieDto.getCinemaId() != null) {
+            Cinema cinema = cinemaRepository.findById(movieDto.getCinemaId())
+                    .orElseThrow(() -> new RuntimeException("Cinema not found with id: " + movieDto.getCinemaId()));
+            movie.setCinema(cinema);
+        }
 
         Movie updatedMovie = movieRepository.save(movie);
         return convertMovieToDto(updatedMovie);
@@ -78,6 +93,9 @@ public class MovieService {
 
     @Transactional
     public void deleteMovie(Long id) {
+        // First delete all shows related to this movie
+        showService.deleteShowsByMovieId(id);
+        // Then delete the movie
         movieRepository.deleteById(id);
     }
 
@@ -85,12 +103,13 @@ public class MovieService {
     public MovieDto assignMovieToCinema(Long movieId, Long cinemaId) {
         Movie movie = movieRepository.findById(movieId)
                 .orElseThrow(() -> new RuntimeException("Movie not found with id: " + movieId));
+        
         Cinema cinema = cinemaRepository.findById(cinemaId)
                 .orElseThrow(() -> new RuntimeException("Cinema not found with id: " + cinemaId));
         
         movie.setCinema(cinema);
-        Movie savedMovie = movieRepository.save(movie);
-        return convertMovieToDto(savedMovie);
+        Movie updatedMovie = movieRepository.save(movie);
+        return convertMovieToDto(updatedMovie);
     }
 
     private MovieDto convertMovieToDto(Movie movie) {
@@ -104,9 +123,13 @@ public class MovieService {
         dto.setReleaseDate(movie.getReleaseDate());
         dto.setPosterUrl(movie.getPosterUrl());
         dto.setIsActive(movie.getIsActive());
+        
+        // Set cinema information if available
         if (movie.getCinema() != null) {
             dto.setCinemaId(movie.getCinema().getId());
+            dto.setCinemaName(movie.getCinema().getName());
         }
+        
         return dto;
     }
 

@@ -1,6 +1,7 @@
 J:\JJ project\backend\src\main\java\com\cinema\controller\MovieController.java
 J:\JJ project\backend\src\main\java\com\cinema\dto\MovieDto.java
 J:\JJ project\backend\src\main\java\com\cinema\service\ShowService.java
+J:\JJ project\backend\src\main\java\com\cinema\config\PasswordConfig.java
 J:\JJ project\backend\src\main\java\com\cinema\dto\SeatBlockRequest.java
 J:\JJ project\backend\src\main\java\com\cinema\entity\Booking.java
 J:\JJ project\backend\src\main\java\com\cinema\config\WebSocketConfig.java

@@ -28,7 +28,7 @@ function appReducer(state, action) {
       return {
         ...state,
         currentUser: action.payload,
-        isAdmin: action.payload?.isAdmin || false
+        isAdmin: action.payload?.is_admin || false
       };
     
     case 'LOGOUT':
@@ -49,7 +49,7 @@ function appReducer(state, action) {
     
     case 'TOGGLE_ADMIN':
       // Only allow admin toggle if user is actually an admin
-      if (state.currentUser?.isAdmin) {
+      if (state.currentUser?.is_admin) {
         return {
           ...state,
           isAdmin: !state.isAdmin
@@ -58,17 +58,8 @@ function appReducer(state, action) {
       return state;
     
     case 'ADD_MOVIE': // This will need to be updated to use backend API
-      const cinemaToUpdate = state.cinemas.find(c => c.id === action.cinemaId);
-      if (cinemaToUpdate) {
-        return {
-          ...state,
-          cinemas: state.cinemas.map(cinema => 
-            cinema.id === action.cinemaId
-              ? { ...cinema, movies: [...cinema.movies, action.movie] }
-              : cinema
-          )
-        };
-      }
+      // Movies are no longer directly associated with cinemas
+      // This functionality should be handled through shows
       return state;
     
     default:
@@ -80,12 +71,15 @@ function appReducer(state, action) {
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
+  // Hardcoded API URL
+  const API_BASE_URL = 'http://localhost:8080';
+
   // Fetch cinemas from the backend on mount
   useEffect(() => {
     const fetchCinemas = async () => {
       dispatch({ type: 'SET_LOADING', payload: true });
       try {
-        const response = await fetch('http://localhost:8080/api/cinemas');
+        const response = await fetch(`${API_BASE_URL}/api/cinemas`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -103,7 +97,7 @@ export function AppProvider({ children }) {
   // Implement confirmBooking API call
   const confirmBooking = async (showId, seatIds) => {
     try {
-      const response = await fetch('http://localhost:8080/api/bookings', {
+      const response = await fetch(`${API_BASE_URL}/api/bookings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

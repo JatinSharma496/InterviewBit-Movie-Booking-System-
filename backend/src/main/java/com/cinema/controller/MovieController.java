@@ -61,9 +61,5 @@ public class MovieController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{id}/assign-cinema")
-    public ResponseEntity<MovieDto> assignMovieToCinema(@PathVariable Long id, @RequestParam Long cinemaId) {
-        MovieDto updatedMovie = movieService.assignMovieToCinema(id, cinemaId);
-        return ResponseEntity.ok(updatedMovie);
-    }
+    // Cinema assignment endpoint removed - movies no longer tied to specific cinemas
 }

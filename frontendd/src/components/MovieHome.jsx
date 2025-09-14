@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { FaPlay, FaClock, FaStar, FaCalendarAlt } from 'react-icons/fa';
+// Hardcoded API URL
+const API_BASE_URL = 'http://localhost:8080';
 
 function MovieHome() {
   const { state } = useApp();
@@ -16,7 +18,7 @@ function MovieHome() {
   const fetchMovies = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8080/api/movies');
+      const response = await fetch(`${API_BASE_URL}/api/movies`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

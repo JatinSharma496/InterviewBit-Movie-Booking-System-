@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { FaArrowLeft, FaClock, FaStar, FaCalendarAlt } from 'react-icons/fa';
+// Hardcoded API URL
+const API_BASE_URL = 'http://localhost:8080';
 
 function MovieList() {
   const { cinemaId } = useParams();
@@ -20,7 +22,7 @@ function MovieList() {
       setLoadingMovies(true);
       try {
         // Fetch movies for the cinema
-        const moviesResponse = await fetch(`http://localhost:8080/api/cinemas/${cinemaId}/movies`);
+        const moviesResponse = await fetch(`${API_BASE_URL}/api/cinemas/${cinemaId}/movies`);
         if (!moviesResponse.ok) {
           throw new Error(`HTTP error! status: ${moviesResponse.status}`);
         }
@@ -28,7 +30,7 @@ function MovieList() {
 
         // For each movie, fetch its showtimes
         const moviesWithShowsPromises = moviesData.map(async (movie) => {
-          const showsResponse = await fetch(`http://localhost:8080/api/movies/${movie.id}/shows`);
+          const showsResponse = await fetch(`${API_BASE_URL}/api/movies/${movie.id}/shows`);
           if (!showsResponse.ok) {
             // Log error but don't block other movies
             console.error(`Failed to fetch shows for movie ${movie.id}: ${showsResponse.status}`);

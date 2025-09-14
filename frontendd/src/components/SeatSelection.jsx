@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { FaArrowLeft, FaChair, FaCheck, FaTimes } from 'react-icons/fa';
+// Hardcoded API URL
+const API_BASE_URL = 'http://localhost:8080';
 
 function SeatSelection() {
   const { cinemaId, movieId, showtimeId } = useParams();
@@ -22,7 +24,7 @@ function SeatSelection() {
     const fetchShow = async () => {
       setLoadingShow(true);
       try {
-        const response = await fetch(`http://localhost:8080/api/shows/${showtimeId}`);
+        const response = await fetch(`${API_BASE_URL}/api/shows/${showtimeId}`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -43,7 +45,7 @@ function SeatSelection() {
       const fetchSeats = async () => {
         setLoadingSeats(true);
         try {
-          const response = await fetch(`http://localhost:8080/api/seats/screen/${show.screen_id}`);
+          const response = await fetch(`${API_BASE_URL}/api/seats/screen/${show.screen_id}`);
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
@@ -77,7 +79,7 @@ function SeatSelection() {
     if (isSelectedLocally) {
       // Deselect seat and unblock on backend
       try {
-        const response = await fetch('http://localhost:8080/api/seats/unblock', {
+        const response = await fetch(`${API_BASE_URL}/api/seats/unblock`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -105,7 +107,7 @@ function SeatSelection() {
       }
 
       try {
-        const response = await fetch('http://localhost:8080/api/seats/block', {
+        const response = await fetch(`${API_BASE_URL}/api/seats/block`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -303,16 +305,16 @@ function SeatSelection() {
               <div className="border-t pt-4">
                 <div className="flex justify-between text-sm">
                   <span>Seats ({selectedLocalSeats.length})</span>
-                  <span>{totalPrice.toFixed(2)}</span>
+                  <span>₹{totalPrice.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span>(₹)Service Fee</span>
-                  <span>(₹){serviceFee.toFixed(2)}</span>
+                  <span>₹ Service Fee</span>
+                  <span>₹ {serviceFee.toFixed(2)}</span>
                 </div>
                 <div className="border-t pt-2 mt-2">
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
-                    <span>(₹){(totalPrice + serviceFee).toFixed(2)}</span>
+                    <span>₹ {(totalPrice + serviceFee).toFixed(2)}</span>
                   </div>
                 </div>
               </div>

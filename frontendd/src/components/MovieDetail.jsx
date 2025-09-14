@@ -5,7 +5,6 @@ import { FaClock, FaCalendarAlt, FaMapMarkerAlt, FaPhone, FaStar, FaArrowLeft } 
 function MovieDetail() {
   const { movieId } = useParams();
   const [movie, setMovie] = useState(null);
-  const [cinema, setCinema] = useState(null);
   const [shows, setShows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -18,20 +17,20 @@ function MovieDetail() {
     try {
       setLoading(true);
       
+      // Hardcoded API URL
+      const API_BASE_URL = 'http://localhost:8080';
+      
       // Fetch movie details
-      const movieResponse = await fetch(`http://localhost:8080/api/movies/${movieId}`);
+      const movieResponse = await fetch(`${API_BASE_URL}/api/movies/${movieId}`);
       if (!movieResponse.ok) throw new Error('Movie not found');
       const movieData = await movieResponse.json();
       setMovie(movieData);
 
-      // Fetch the cinema for this movie
-      const cinemaResponse = await fetch(`http://localhost:8080/api/cinemas/${movieData.cinema_id}`);
-      if (!cinemaResponse.ok) throw new Error('Failed to fetch cinema');
-      const cinemaData = await cinemaResponse.json();
-      setCinema(cinemaData);
+      // Movies no longer have direct cinema relationship
+      // Cinema info will be available through shows
 
       // Fetch shows for this movie
-      const showsResponse = await fetch(`http://localhost:8080/api/shows/movie/${movieId}`);
+      const showsResponse = await fetch(`${API_BASE_URL}/api/shows/movie/${movieId}`);
       if (!showsResponse.ok) throw new Error('Failed to fetch shows');
       const showsData = await showsResponse.json();
       setShows(showsData);
@@ -66,6 +65,18 @@ function MovieDetail() {
   };
 
   // No longer needed since we only have one cinema
+
+  const groupShowsByCinema = (shows) => {
+    const grouped = {};
+    shows.forEach(show => {
+      const cinemaName = show.cinema_name || 'Unknown Cinema';
+      if (!grouped[cinemaName]) {
+        grouped[cinemaName] = [];
+      }
+      grouped[cinemaName].push(show);
+    });
+    return grouped;
+  };
 
   const groupShowsByDate = (shows) => {
     const grouped = {};
@@ -164,37 +175,35 @@ function MovieDetail() {
         <div className="mt-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Select Theater & Showtime</h2>
           
-          {!cinema ? (
+          {shows.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              No theater available for this movie
+              No shows available for this movie
             </div>
           ) : (
             <div className="space-y-6">
-              <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                <div className="p-6 border-b border-gray-200">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-900">{cinema.name}</h3>
-                      <div className="flex items-center text-gray-600 mt-2">
-                        <FaMapMarkerAlt className="mr-2" />
-                        <span>{cinema.location}</span>
-                      </div>
-                      <div className="flex items-center text-gray-600 mt-1">
-                        <FaPhone className="mr-2" />
-                        <span>{cinema.contact_info}</span>
+              {/* Group shows by cinema */}
+              {Object.entries(groupShowsByCinema(shows)).map(([cinemaName, cinemaShows]) => (
+                <div key={cinemaName} className="bg-white rounded-lg shadow-lg overflow-hidden">
+                  <div className="p-6 border-b border-gray-200">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="text-xl font-semibold text-gray-900">{cinemaName}</h3>
+                        <div className="flex items-center text-gray-600 mt-2">
+                          <FaMapMarkerAlt className="mr-2" />
+                          <span>{cinemaShows[0].cinema_location || 'Location not available'}</span>
+      
+                        </div>
+                        <div className="flex items-center text-gray-600 mt-1">
+                          <FaPhone className="mr-2" />
+                          <span>{cinemaShows[0].cinema_contact_info || 'Contact not available'}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
                 
-                <div className="p-6">
-                  {shows.length === 0 ? (
-                    <div className="text-center py-4 text-gray-500">
-                      No shows available for this movie
-                    </div>
-                  ) : (
+                  <div className="p-6">
                     <div className="space-y-4">
-                      {Object.entries(groupShowsByDate(shows)).map(([date, dateShows]) => (
+                      {Object.entries(groupShowsByDate(cinemaShows)).map(([date, dateShows]) => (
                         <div key={date}>
                           <h4 className="text-lg font-medium text-gray-900 mb-3">
                             {formatDate(date)}
@@ -214,9 +223,9 @@ function MovieDetail() {
                         </div>
                       ))}
                     </div>
-                  )}
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
           )}
         </div>

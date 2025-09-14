@@ -39,4 +39,8 @@ public class BookingDto {
     private UserDto user;
     private ShowDto show;
     private List<SeatDto> seats;
+    
+    // Flattened fields for easier frontend access
+    private String movieTitle;
+    private String cinemaName;
 }

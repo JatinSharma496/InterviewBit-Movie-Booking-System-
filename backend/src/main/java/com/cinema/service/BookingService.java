@@ -162,7 +162,7 @@ public class BookingService {
                 movieDto.setReleaseDate(booking.getShow().getMovie().getReleaseDate());
                 movieDto.setPosterUrl(booking.getShow().getMovie().getPosterUrl());
                 movieDto.setIsActive(booking.getShow().getMovie().getIsActive());
-                movieDto.setCinemaId(booking.getShow().getMovie().getCinema().getId());
+                // Movies don't have direct cinema relationship in this model
                 showDto.setMovie(movieDto);
                 showDto.setMovieTitle(booking.getShow().getMovie().getTitle());
             }

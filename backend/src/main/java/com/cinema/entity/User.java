@@ -34,7 +34,7 @@ public class User {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     
-    @Column(name = "is_admin")
+    @Column(name = "is_admin", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
     private Boolean isAdmin = false;
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

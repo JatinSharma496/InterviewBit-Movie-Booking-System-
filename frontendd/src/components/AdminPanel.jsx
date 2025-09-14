@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { FaPlus, FaEdit, FaTrash, FaEye, FaChair, FaUser, FaFilm, FaBuilding, FaCalendarAlt, FaTicketAlt, FaCog, FaSearch, FaFilter } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaEye, FaChair, FaUser, FaFilm, FaBuilding, FaCalendarAlt, FaTicketAlt, FaCog } from 'react-icons/fa';
 import { MovieModal, CinemaModal, ScreenModal, ShowModal } from './AdminModals';
+// Hardcoded API URL
+const API_BASE_URL = 'http://localhost:8080';
 
 function AdminPanel() {
   const { state } = useApp();
@@ -19,9 +21,6 @@ function AdminPanel() {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
-  // Search and filter states
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
 
   // Modal states
   const [showAddMovieModal, setShowAddMovieModal] = useState(false);
@@ -78,12 +77,12 @@ function AdminPanel() {
       setLoading(true);
       try {
         const [cinemasRes, moviesRes, bookingsRes, usersRes, screensRes, showsRes] = await Promise.all([
-          fetch('http://localhost:8080/api/cinemas'),
-          fetch('http://localhost:8080/api/movies'),
-          fetch('http://localhost:8080/api/bookings'),
-          fetch('http://localhost:8080/api/users'),
-          fetch('http://localhost:8080/api/screens'),
-          fetch('http://localhost:8080/api/shows')
+          fetch(`${API_BASE_URL}/api/cinemas`),
+          fetch(`${API_BASE_URL}/api/movies`),
+          fetch(`${API_BASE_URL}/api/bookings`),
+          fetch(`${API_BASE_URL}/api/users`),
+          fetch(`${API_BASE_URL}/api/screens`),
+          fetch(`${API_BASE_URL}/api/shows`)
         ]);
 
         if (!cinemasRes.ok) throw new Error(`Failed to fetch cinemas: ${cinemasRes.status}`);
@@ -112,12 +111,17 @@ function AdminPanel() {
   // Generic handlers
   const handleAdd = async (endpoint, data, setter, resetData, successMsg) => {
     try {
-      const response = await fetch(`http://localhost:8080/api/${endpoint}`, {
+      const response = await fetch(`${API_BASE_URL}/api/${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
-      if (!response.ok) throw new Error(`Failed to add ${endpoint}: ${response.status}`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to add ${endpoint}: ${response.status}`);
+      }
+      
       const addedItem = await response.json();
       setter(prev => [...prev, addedItem]);
       resetData();
@@ -130,12 +134,17 @@ function AdminPanel() {
 
   const handleEdit = async (endpoint, id, data, setter, onSuccess) => {
     try {
-      const response = await fetch(`http://localhost:8080/api/${endpoint}/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/${endpoint}/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
-      if (!response.ok) throw new Error(`Failed to update ${endpoint}: ${response.status}`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to update ${endpoint}: ${response.status}`);
+      }
+      
       const updatedItem = await response.json();
       setter(prev => prev.map(item => (item.id === updatedItem.id ? updatedItem : item)));
       if (onSuccess) onSuccess();
@@ -147,7 +156,7 @@ function AdminPanel() {
   const handleDelete = async (endpoint, id, setter) => {
     if (!window.confirm('Are you sure you want to delete this item?')) return;
     try {
-      const response = await fetch(`http://localhost:8080/api/${endpoint}/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/${endpoint}/${id}`, {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error(`Failed to delete ${endpoint}: ${response.status}`);
@@ -204,18 +213,6 @@ function AdminPanel() {
     }, 'Show added successfully!');
   };
 
-  // Filter functions
-  const filteredMovies = movies.filter(movie => 
-    movie.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    movie.genre.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const filteredBookings = bookings.filter(booking => {
-    const matchesSearch = booking.movie_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         booking.cinema_name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || booking.status === filterStatus;
-    return matchesSearch && matchesStatus;
-  });
 
   if (loading) {
     return (
@@ -263,30 +260,6 @@ function AdminPanel() {
               <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
               <p className="text-gray-600 mt-1">Manage your cinema system</p>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                />
-              </div>
-              <div className="flex items-center space-x-2">
-                <FaFilter className="text-gray-400" />
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option value="all">All Status</option>
-                  <option value="CONFIRMED">Confirmed</option>
-                  <option value="CANCELLED">Cancelled</option>
-                </select>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -326,10 +299,10 @@ function AdminPanel() {
         <div className="space-y-8">
           {activeTab === 'dashboard' && <DashboardTab cinemas={cinemas} movies={movies} bookings={bookings} shows={shows} />}
           {activeTab === 'cinemas' && <CinemasTab cinemas={cinemas} setCinemas={setCinemas} setShowAddCinemaModal={setShowAddCinemaModal} setShowEditCinemaModal={setShowEditCinemaModal} setEditingItem={setEditingItem} handleDelete={handleDelete} />}
-          {activeTab === 'movies' && <MoviesTab movies={filteredMovies} setMovies={setMovies} cinemas={cinemas} setShowAddMovieModal={setShowAddMovieModal} setShowEditMovieModal={setShowEditMovieModal} setEditingItem={setEditingItem} handleDelete={handleDelete} />}
+          {activeTab === 'movies' && <MoviesTab movies={movies} setMovies={setMovies} cinemas={cinemas} setShowAddMovieModal={setShowAddMovieModal} setShowEditMovieModal={setShowEditMovieModal} setEditingItem={setEditingItem} handleDelete={handleDelete} />}
           {activeTab === 'screens' && <ScreensTab screens={screens} setScreens={setScreens} cinemas={cinemas} setShowAddScreenModal={setShowAddScreenModal} setShowEditScreenModal={setShowEditScreenModal} setEditingItem={setEditingItem} handleDelete={handleDelete} />}
           {activeTab === 'shows' && <ShowsTab shows={shows} setShows={setShows} movies={movies} screens={screens} cinemas={cinemas} setShowAddShowModal={setShowAddShowModal} setShowEditShowModal={setShowEditShowModal} setEditingItem={setEditingItem} handleDelete={handleDelete} setError={setError} />}
-          {activeTab === 'bookings' && <BookingsTab bookings={filteredBookings} users={users} />}
+          {activeTab === 'bookings' && <BookingsTab bookings={bookings} users={users} />}
           {activeTab === 'users' && <UsersTab users={users} />}
         </div>
       </div>
@@ -441,7 +414,7 @@ function DashboardTab({ cinemas, movies, bookings, shows }) {
           </div>
           <div className="ml-4">
             <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-            <p className="text-3xl font-bold text-gray-900">${totalRevenue.toFixed(2)}</p>
+            <p className="text-3xl font-bold text-gray-900">₹{totalRevenue.toFixed(2)}</p>
           </div>
         </div>
       </div>
@@ -656,7 +629,7 @@ function ShowsTab({ shows, setShows, movies, screens, cinemas, setShowAddShowMod
                     <div className="text-sm text-gray-900">{show.date} at {show.time}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">${show.ticket_price}</div>
+                    <div className="text-sm text-gray-900">₹{show.ticket_price}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
@@ -735,7 +708,7 @@ function BookingsTab({ bookings, users }) {
                     {booking.seats ? booking.seats.length : 0}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${(booking.total_amount + 2).toFixed(2)}
+                    ₹{(booking.total_amount + 2).toFixed(2)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(booking.status)}`}>

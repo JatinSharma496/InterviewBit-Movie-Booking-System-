@@ -34,7 +34,7 @@ public class Movie {
     @Column(nullable = false)
     private Integer duration; // in minutes
     
-    @Column(name = "release_date")
+    @Column(name = "release_date", nullable = false)
     private LocalDate releaseDate;
     
     @Column(name = "poster_url")

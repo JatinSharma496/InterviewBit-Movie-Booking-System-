@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { FaUser, FaUserShield, FaEye, FaEyeSlash } from 'react-icons/fa';
+// Hardcoded API URL
+const API_BASE_URL = 'http://localhost:8080';
 
 function UnifiedAuth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -56,7 +58,7 @@ function UnifiedAuth() {
             isAdmin: userType === 'admin'
           };
 
-      const response = await fetch(`http://localhost:8080${endpoint}`, {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -68,13 +70,13 @@ function UnifiedAuth() {
         const user = await response.json();
         
         // Check if user type matches (for admin login)
-        if (isLogin && userType === 'admin' && !user.isAdmin) {
+        if (isLogin && userType === 'admin' && !user.is_admin) {
           setError('This account is not an admin account');
           setLoading(false);
           return;
         }
         
-        if (isLogin && userType === 'user' && user.isAdmin) {
+        if (isLogin && userType === 'user' && user.is_admin) {
           setError('Please use admin login for this account');
           setLoading(false);
           return;
@@ -83,7 +85,7 @@ function UnifiedAuth() {
         dispatch({ type: 'SET_CURRENT_USER', payload: user });
         
         // Redirect admin users to admin panel, regular users to home
-        if (user.isAdmin && userType === 'admin') {
+        if (user.is_admin && userType === 'admin') {
           navigate('/admin');
         } else {
           navigate('/');
