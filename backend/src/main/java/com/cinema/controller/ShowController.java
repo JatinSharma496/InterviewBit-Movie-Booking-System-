@@ -29,6 +29,12 @@ public class ShowController {
         return ResponseEntity.ok(show);
     }
 
+    @GetMapping("/movie/{movieId}")
+    public ResponseEntity<List<ShowDto>> getShowsByMovieId(@PathVariable Long movieId) {
+        List<ShowDto> shows = showService.getShowsByMovieId(movieId);
+        return ResponseEntity.ok(shows);
+    }
+
     @PostMapping
     public ResponseEntity<ShowDto> createShow(@RequestBody ShowDto showDto) {
         ShowDto createdShow = showService.createShow(showDto);

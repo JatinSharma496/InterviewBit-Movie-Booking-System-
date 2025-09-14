@@ -34,4 +34,8 @@ public class ShowDto {
     private ScreenDto screen;
     private String movieTitle;
     private String screenName;
+    private Long cinemaId;
+    private String cinemaName;
+    private String cinemaLocation;
+    private String cinemaContactInfo;
 }

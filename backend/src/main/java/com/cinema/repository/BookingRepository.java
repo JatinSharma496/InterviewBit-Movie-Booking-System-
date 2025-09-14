@@ -18,10 +18,10 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     
     List<Booking> findByUserIdAndStatusOrderByBookingDateDesc(Long userId, BookingStatus status);
     
-    @Query("SELECT b FROM Booking b LEFT JOIN FETCH b.seats s LEFT JOIN FETCH b.user u LEFT JOIN FETCH b.show sh LEFT JOIN FETCH sh.movie m LEFT JOIN FETCH sh.screen sc WHERE b.id = :id")
+    @Query("SELECT b FROM Booking b LEFT JOIN FETCH b.seats s LEFT JOIN FETCH b.user u LEFT JOIN FETCH b.show sh LEFT JOIN FETCH sh.movie m LEFT JOIN FETCH sh.screen sc LEFT JOIN FETCH sc.cinema c WHERE b.id = :id")
     Optional<Booking> findByIdWithDetails(@Param("id") Long id);
     
-    @Query("SELECT b FROM Booking b LEFT JOIN FETCH b.seats s LEFT JOIN FETCH b.user u LEFT JOIN FETCH b.show sh LEFT JOIN FETCH sh.movie m LEFT JOIN FETCH sh.screen sc WHERE b.user.id = :userId ORDER BY b.bookingDate DESC")
+    @Query("SELECT b FROM Booking b LEFT JOIN FETCH b.seats s LEFT JOIN FETCH b.user u LEFT JOIN FETCH b.show sh LEFT JOIN FETCH sh.movie m LEFT JOIN FETCH sh.screen sc LEFT JOIN FETCH sc.cinema c WHERE b.user.id = :userId ORDER BY b.bookingDate DESC")
     List<Booking> findByUserIdWithDetails(@Param("userId") Long userId);
     
     @Query("SELECT COUNT(b) FROM Booking b WHERE b.show.id = :showId AND b.status = 'CONFIRMED'")

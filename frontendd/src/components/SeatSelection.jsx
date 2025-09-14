@@ -15,6 +15,7 @@ function SeatSelection() {
   const [error, setError] = useState(null);
   const [isProcessingBooking, setIsProcessingBooking] = useState(false);
   const [selectedLocalSeats, setSelectedLocalSeats] = useState([]); // Local state for selected seats
+  const serviceFee = 30.00; // Service fee variable
 
   // Fetch Show details
   useEffect(() => {
@@ -302,16 +303,16 @@ function SeatSelection() {
               <div className="border-t pt-4">
                 <div className="flex justify-between text-sm">
                   <span>Seats ({selectedLocalSeats.length})</span>
-                  <span>${totalPrice.toFixed(2)}</span>
+                  <span>{totalPrice.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span>Service Fee</span>
-                  <span>$2.00</span>
+                  <span>(₹)Service Fee</span>
+                  <span>(₹){serviceFee.toFixed(2)}</span>
                 </div>
                 <div className="border-t pt-2 mt-2">
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
-                    <span>${(totalPrice + 2).toFixed(2)}</span>
+                    <span>(₹){(totalPrice + serviceFee).toFixed(2)}</span>
                   </div>
                 </div>
               </div>

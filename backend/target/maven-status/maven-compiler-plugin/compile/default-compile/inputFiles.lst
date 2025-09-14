@@ -20,6 +20,7 @@ J:\JJ project\backend\src\main\java\com\cinema\service\UserService.java
 J:\JJ project\backend\src\main\java\com\cinema\repository\CinemaRepository.java
 J:\JJ project\backend\src\main\java\com\cinema\repository\MovieRepository.java
 J:\JJ project\backend\src\main\java\com\cinema\dto\BookingDto.java
+J:\JJ project\backend\src\main\java\com\cinema\dto\LoginRequest.java
 J:\JJ project\backend\src\main\java\com\cinema\dto\ScreenDto.java
 J:\JJ project\backend\src\main\java\com\cinema\service\MovieService.java
 J:\JJ project\backend\src\main\java\com\cinema\service\BookingService.java
@@ -27,12 +28,14 @@ J:\JJ project\backend\src\main\java\com\cinema\dto\BookingRequest.java
 J:\JJ project\backend\src\main\java\com\cinema\dto\CinemaDto.java
 J:\JJ project\backend\src\main\java\com\cinema\CinemaBookingSystemApplication.java
 J:\JJ project\backend\src\main\java\com\cinema\service\CinemaService.java
+J:\JJ project\backend\src\main\java\com\cinema\dto\SignupRequest.java
 J:\JJ project\backend\src\main\java\com\cinema\entity\Seat.java
 J:\JJ project\backend\src\main\java\com\cinema\controller\ScreenController.java
 J:\JJ project\backend\src\main\java\com\cinema\dto\ShowDto.java
 J:\JJ project\backend\src\main\java\com\cinema\repository\SeatRepository.java
 J:\JJ project\backend\src\main\java\com\cinema\service\ScreenService.java
 J:\JJ project\backend\src\main\java\com\cinema\controller\BookingController.java
+J:\JJ project\backend\src\main\java\com\cinema\util\PasswordUtil.java
 J:\JJ project\backend\src\main\java\com\cinema\dto\SeatDto.java
 J:\JJ project\backend\src\main\java\com\cinema\controller\CinemaController.java
 J:\JJ project\backend\src\main\java\com\cinema\dto\UserDto.java

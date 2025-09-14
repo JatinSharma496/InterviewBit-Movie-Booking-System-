@@ -2,6 +2,7 @@ package com.cinema.config;
 
 import com.cinema.entity.*;
 import com.cinema.repository.*;
+import com.cinema.util.PasswordUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -22,13 +23,31 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        migrateExistingPasswords();
         initializeData();
     }
 
+    private void migrateExistingPasswords() {
+        // Migrate existing users with plain text passwords to hashed passwords
+        userRepository.findAll().forEach(user -> {
+            if (user.getPassword() != null && !user.getPassword().contains("=")) {
+                // If password doesn't contain '=' it's likely plain text (Base64 contains '=')
+                if (user.getPassword().equals("password123")) {
+                    user.setPassword(PasswordUtil.hashPassword("password123"));
+                    userRepository.save(user);
+                    System.out.println("Migrated password for user: " + user.getEmail());
+                }
+            }
+        });
+    }
+
     private void initializeData() {
+        System.out.println("Starting data initialization...");
+        
         // ✅ Users
         User admin = createUserIfNotExists("admin@cinema.com", "Admin User", "1234567890", true);
         User user1 = createUserIfNotExists("john@example.com", "John Doe", "9876543210", false);
+        System.out.println("Users created: " + admin.getEmail() + ", " + user1.getEmail());
 
         // ✅ Cinemas
         Cinema cinema1 = createCinemaIfNotExists("CineMax Downtown", "123 Main Street, Downtown", "+1-555-0123");
@@ -49,6 +68,7 @@ public class DataInitializer implements CommandLineRunner {
                 "https://via.placeholder.com/300x450/000000/FFFFFF?text=The+Dark+Knight",
                 cinema1
         );
+        System.out.println("Movie 1 created: " + movie1.getTitle());
 
         Movie movie2 = createMovieIfNotExists(
                 "Inception",
@@ -95,6 +115,7 @@ public class DataInitializer implements CommandLineRunner {
             User u = new User();
             u.setEmail(email);
             u.setName(name);
+            u.setPassword(PasswordUtil.hashPassword("password123")); // Default password for demo users
             u.setPhoneNumber(phone);
             u.setIsAdmin(isAdmin);
             return userRepository.save(u);

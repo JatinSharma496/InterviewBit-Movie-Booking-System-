@@ -1,5 +1,7 @@
 package com.cinema.controller;
 
+import com.cinema.dto.LoginRequest;
+import com.cinema.dto.SignupRequest;
 import com.cinema.dto.UserDto;
 import com.cinema.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,26 @@ import java.util.List;
 public class UserController {
     
     private final UserService userService;
+    
+    @PostMapping("/signup")
+    public ResponseEntity<UserDto> signup(@Valid @RequestBody SignupRequest signupRequest) {
+        try {
+            UserDto createdUser = userService.signup(signupRequest);
+            return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    @PostMapping("/login")
+    public ResponseEntity<UserDto> login(@Valid @RequestBody LoginRequest loginRequest) {
+        try {
+            UserDto user = userService.login(loginRequest);
+            return ResponseEntity.ok(user);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
     
     @PostMapping
     public ResponseEntity<UserDto> createUser(@Valid @RequestBody UserDto userDto) {

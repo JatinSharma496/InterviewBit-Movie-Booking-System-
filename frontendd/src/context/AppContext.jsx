@@ -6,7 +6,7 @@ const AppContext = createContext();
 const initialState = {
   cinemas: [],
   bookings: [],
-  currentUser: { id: 2, name: "John Doe", email: "john@example.com" }, // Using user ID 2 from DataInitializer
+  currentUser: null, // Will be set after login
   isAdmin: false,
   loading: true, // To show a loading indicator
   error: null, // To show an error message
@@ -23,6 +23,20 @@ function appReducer(state, action) {
       return { ...state, cinemas: action.payload, loading: false };
     case 'SET_BOOKING':
       return { ...state, bookings: [...state.bookings, action.payload] };
+    
+    case 'SET_CURRENT_USER':
+      return {
+        ...state,
+        currentUser: action.payload,
+        isAdmin: action.payload?.isAdmin || false
+      };
+    
+    case 'LOGOUT':
+      return {
+        ...state,
+        currentUser: null,
+        isAdmin: false
+      };
     
     // Old mock data logic removed
     case 'CANCEL_BOOKING':
@@ -117,7 +131,8 @@ export function AppProvider({ children }) {
     confirmBooking,
     cancelBooking: (bookingId) => dispatch({ type: 'CANCEL_BOOKING', bookingId }),
     toggleAdmin: () => dispatch({ type: 'TOGGLE_ADMIN' }),
-    addMovie: (cinemaId, movie) => dispatch({ type: 'ADD_MOVIE', cinemaId, movie }) // This will need to be updated
+    addMovie: (cinemaId, movie) => dispatch({ type: 'ADD_MOVIE', cinemaId, movie }), // This will need to be updated
+    logout: () => dispatch({ type: 'LOGOUT' })
   };
 
   return (

@@ -121,6 +121,8 @@ public class MovieService {
         dto.setMovieTitle(show.getMovie().getTitle());
         dto.setScreenId(show.getScreen().getId());
         dto.setScreenName(show.getScreen().getName());
+        dto.setCinemaId(show.getScreen().getCinema().getId());
+        dto.setCinemaName(show.getScreen().getCinema().getName());
         return dto;
     }
 }

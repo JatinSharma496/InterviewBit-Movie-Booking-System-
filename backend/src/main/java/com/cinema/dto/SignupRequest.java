@@ -11,9 +11,7 @@ import jakarta.validation.constraints.Size;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserDto {
-    
-    private Long id;
+public class SignupRequest {
     
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
@@ -28,6 +26,4 @@ public class UserDto {
     private String password;
     
     private String phoneNumber;
-    
-    private Boolean isAdmin = false;
 }

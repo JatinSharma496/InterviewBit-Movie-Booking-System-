@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { FaTicketAlt, FaCalendarAlt, FaClock, FaMapMarkerAlt, FaChair, FaTimes, FaEye } from 'react-icons/fa';
 
 function BookingHistory() {
   const { state } = useApp();
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -21,8 +22,8 @@ function BookingHistory() {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        // Sort bookings by booking_date (newest first)
-        const sortedData = data.sort((a, b) => new Date(b.booking_date) - new Date(a.booking_date));
+        // Sort bookings by bookingDate (newest first)
+        const sortedData = data.sort((a, b) => new Date(b.bookingDate) - new Date(a.bookingDate));
         setBookings(sortedData);
       } catch (e) {
         setError(e.message);
@@ -36,7 +37,12 @@ function BookingHistory() {
     }
   }, [userId]);
 
-  const handleCancelBooking = async (bookingId) => {
+  const handleBookingClick = (bookingId) => {
+    navigate(`/confirmation/${bookingId}`);
+  };
+
+  const handleCancelBooking = async (bookingId, event) => {
+    event.stopPropagation(); // Prevent triggering the booking click
     if (window.confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
       try {
         const response = await fetch(`http://localhost:8080/api/bookings/${bookingId}/cancel`, {
@@ -103,13 +109,17 @@ function BookingHistory() {
       ) : (
         <div className="space-y-6">
           {bookings.map(booking => (
-            <div key={booking.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div 
+              key={booking.id} 
+              className="bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition-shadow duration-200"
+              onClick={() => handleBookingClick(booking.id)}
+            >
               <div className="p-6">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4">
                   <div className="flex items-center mb-4 lg:mb-0">
                     <FaTicketAlt className="text-2xl text-blue-600 mr-3" />
                     <div>
-                      <h2 className="text-xl font-bold text-gray-800">{booking.movie_title}</h2>
+                      <h2 className="text-xl font-bold text-gray-800">{booking.show?.movie?.title || booking.show?.movieTitle || 'N/A'}</h2>
                       <p className="text-gray-600">Booking #{booking.id}</p>
                     </div>
                   </div>
@@ -117,7 +127,7 @@ function BookingHistory() {
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(booking.status)}`}>
                       {booking.status.charAt(0).toUpperCase() + booking.status.slice(1).toLowerCase()}
                     </span>
-                    {/* Admin view seats functionality would go here */}
+                    <FaEye className="text-gray-400 hover:text-blue-600 transition-colors" />
                   </div>
                 </div>
 
@@ -127,11 +137,11 @@ function BookingHistory() {
                     <div className="space-y-1 text-sm text-gray-600">
                       <div className="flex items-center">
                         <FaCalendarAlt className="mr-2" />
-                        <span>{booking.show_date}</span>
+                        <span>{booking.show?.date || 'N/A'}</span>
                       </div>
                       <div className="flex items-center">
                         <FaClock className="mr-2" />
-                        <span>{booking.show_time}</span>
+                        <span>{booking.show?.time || 'N/A'}</span>
                       </div>
                     </div>
                   </div>
@@ -141,10 +151,10 @@ function BookingHistory() {
                     <div className="space-y-1 text-sm text-gray-600">
                       <div className="flex items-center">
                         <FaMapMarkerAlt className="mr-2" />
-                        <span>{booking.cinema_name}</span>
+                        <span>{booking.show?.cinema_name || 'N/A'}</span>
                       </div>
-                      <p className="text-xs">{booking.cinema_location}</p>
-                      <p className="text-xs">{booking.screen_name}</p>
+                      <p className="text-xs">{booking.show?.cinema_location || 'N/A'}</p>
+                      <p className="text-xs">{booking.show?.screen_name || 'N/A'}</p>
                     </div>
                   </div>
 
@@ -163,7 +173,7 @@ function BookingHistory() {
                   <div>
                     <h3 className="font-semibold text-gray-700 mb-1">Payment</h3>
                     <div className="space-y-1 text-sm text-gray-600">
-                      <p>Total: ${booking.total_amount.toFixed(2)}</p>
+                      <p>Total: ₹ {booking.total_amount?.toFixed(2) || '0.00'}</p>
                       <p className="text-xs">
                         Booked: {new Date(booking.booking_date).toLocaleString()}
                       </p>
@@ -174,7 +184,7 @@ function BookingHistory() {
                 {booking.status === 'CONFIRMED' && (
                   <div className="flex justify-end">
                     <button
-                      onClick={() => handleCancelBooking(booking.id)}
+                      onClick={(e) => handleCancelBooking(booking.id, e)}
                       className="flex items-center text-red-600 hover:text-red-800 font-medium"
                     >
                       <FaTimes className="mr-1" />

@@ -20,8 +20,15 @@ public class MovieController {
 
     @GetMapping
     public ResponseEntity<List<MovieDto>> getAllMovies() {
-        List<MovieDto> movies = movieService.getAllMovies();
-        return ResponseEntity.ok(movies);
+        try {
+            List<MovieDto> movies = movieService.getAllMovies();
+            System.out.println("Found " + movies.size() + " movies");
+            return ResponseEntity.ok(movies);
+        } catch (Exception e) {
+            System.err.println("Error getting movies: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
     }
 
     @GetMapping("/{id}")

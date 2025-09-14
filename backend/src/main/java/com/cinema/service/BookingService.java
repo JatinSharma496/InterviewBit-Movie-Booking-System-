@@ -3,6 +3,11 @@ package com.cinema.service;
 import com.cinema.dto.BookingDto;
 import com.cinema.dto.BookingRequest;
 import com.cinema.dto.SeatDto;
+import com.cinema.dto.UserDto;
+import com.cinema.dto.ShowDto;
+import com.cinema.dto.MovieDto;
+import com.cinema.dto.ScreenDto;
+import com.cinema.dto.CinemaDto;
 import com.cinema.entity.*;
 import com.cinema.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -122,6 +127,74 @@ public class BookingService {
         dto.setStatus(booking.getStatus());
         dto.setUserId(booking.getUser().getId());
         dto.setShowId(booking.getShow().getId());
+        
+        // Include user information
+        if (booking.getUser() != null) {
+            UserDto userDto = new UserDto();
+            userDto.setId(booking.getUser().getId());
+            userDto.setName(booking.getUser().getName());
+            userDto.setEmail(booking.getUser().getEmail());
+            userDto.setPhoneNumber(booking.getUser().getPhoneNumber());
+            userDto.setIsAdmin(booking.getUser().getIsAdmin());
+            dto.setUser(userDto);
+        }
+        
+        // Include show information with movie, screen, and cinema details
+        if (booking.getShow() != null) {
+            ShowDto showDto = new ShowDto();
+            showDto.setId(booking.getShow().getId());
+            showDto.setDate(booking.getShow().getDate());
+            showDto.setTime(booking.getShow().getTime());
+            showDto.setTicketPrice(booking.getShow().getTicketPrice());
+            showDto.setIsActive(booking.getShow().getIsActive());
+            showDto.setMovieId(booking.getShow().getMovie().getId());
+            showDto.setScreenId(booking.getShow().getScreen().getId());
+            
+            // Include movie details
+            if (booking.getShow().getMovie() != null) {
+                MovieDto movieDto = new MovieDto();
+                movieDto.setId(booking.getShow().getMovie().getId());
+                movieDto.setTitle(booking.getShow().getMovie().getTitle());
+                movieDto.setDescription(booking.getShow().getMovie().getDescription());
+                movieDto.setGenre(booking.getShow().getMovie().getGenre());
+                movieDto.setRating(booking.getShow().getMovie().getRating());
+                movieDto.setDuration(booking.getShow().getMovie().getDuration());
+                movieDto.setReleaseDate(booking.getShow().getMovie().getReleaseDate());
+                movieDto.setPosterUrl(booking.getShow().getMovie().getPosterUrl());
+                movieDto.setIsActive(booking.getShow().getMovie().getIsActive());
+                movieDto.setCinemaId(booking.getShow().getMovie().getCinema().getId());
+                showDto.setMovie(movieDto);
+                showDto.setMovieTitle(booking.getShow().getMovie().getTitle());
+            }
+            
+            // Include screen details
+            if (booking.getShow().getScreen() != null) {
+                ScreenDto screenDto = new ScreenDto();
+                screenDto.setId(booking.getShow().getScreen().getId());
+                screenDto.setName(booking.getShow().getScreen().getName());
+                screenDto.setCapacity(booking.getShow().getScreen().getCapacity());
+                screenDto.setTotalRows(booking.getShow().getScreen().getTotalRows());
+                screenDto.setSeatsPerRow(booking.getShow().getScreen().getSeatsPerRow());
+                screenDto.setCinemaId(booking.getShow().getScreen().getCinema().getId());
+                showDto.setScreen(screenDto);
+                showDto.setScreenName(booking.getShow().getScreen().getName());
+                
+                // Include cinema details
+                if (booking.getShow().getScreen().getCinema() != null) {
+                    CinemaDto cinemaDto = new CinemaDto();
+                    cinemaDto.setId(booking.getShow().getScreen().getCinema().getId());
+                    cinemaDto.setName(booking.getShow().getScreen().getCinema().getName());
+                    cinemaDto.setLocation(booking.getShow().getScreen().getCinema().getLocation());
+                    cinemaDto.setContactInfo(booking.getShow().getScreen().getCinema().getContactInfo());
+                    showDto.setCinemaId(booking.getShow().getScreen().getCinema().getId());
+                    showDto.setCinemaName(booking.getShow().getScreen().getCinema().getName());
+                    showDto.setCinemaLocation(booking.getShow().getScreen().getCinema().getLocation());
+                    showDto.setCinemaContactInfo(booking.getShow().getScreen().getCinema().getContactInfo());
+                }
+            }
+            
+            dto.setShow(showDto);
+        }
         
         if (booking.getSeats() != null) {
             dto.setSeatIds(booking.getSeats().stream()

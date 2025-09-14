@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { FaCheckCircle, FaTicketAlt, FaCalendarAlt, FaClock, FaMapMarkerAlt, FaChair } from 'react-icons/fa';
+import { FaCheckCircle, FaTicketAlt, FaCalendarAlt, FaClock, FaMapMarkerAlt, FaChair, FaUser, FaEnvelope, FaPhone } from 'react-icons/fa';
 
 function BookingConfirmation() {
   const { bookingId } = useParams();
@@ -66,15 +66,37 @@ function BookingConfirmation() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-4">
             <div>
+              <h3 className="font-semibold text-gray-700 mb-2">Customer Information</h3>
+              <div className="space-y-2">
+                <div className="flex items-center text-gray-600">
+                  <FaUser className="mr-2" />
+                  <span className="font-medium">{booking.user?.name || 'N/A'}</span>
+                </div>
+                <div className="flex items-center text-gray-600">
+                  <FaEnvelope className="mr-2" />
+                  <span>{booking.user?.email || 'N/A'}</span>
+                </div>
+                <div className="flex items-center text-gray-600">
+                  <FaPhone className="mr-2" />
+                  <span>{booking.user?.phone_number || 'N/A'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
               <h3 className="font-semibold text-gray-700 mb-2">Movie Information</h3>
               <div className="space-y-2">
-                <p className="text-lg font-medium">{booking.movie_title}</p>
+                <p className="text-lg font-medium">{booking.show?.movie?.title || 'N/A'}</p>
                 <div className="flex items-center text-gray-600">
                   <FaClock className="mr-2" />
-                  <span>{booking.movie_duration} min</span>
+                  <span>{booking.show?.movie?.duration || 'N/A'} min</span>
                 </div>
-                <p className="text-sm text-gray-600">{booking.movie_genre}</p>
-                <p className="text-sm text-gray-600">Rating: {booking.movie_rating}</p>
+                <p className="text-sm text-gray-600">{booking.show?.movie?.genre || 'N/A'}</p>
+                <p className="text-sm text-gray-600">Rating: {booking.show?.movie?.rating || 'N/A'}</p>
+                <p className="text-sm text-gray-600">Release Date: {booking.show?.movie?.release_date || 'N/A'}</p>
+                {booking.show?.movie?.description && (
+                  <p className="text-sm text-gray-600 mt-2">{booking.show.movie.description}</p>
+                )}
               </div>
             </div>
 
@@ -83,22 +105,37 @@ function BookingConfirmation() {
               <div className="space-y-2">
                 <div className="flex items-center text-gray-600">
                   <FaCalendarAlt className="mr-2" />
-                  <span>{booking.show_date}</span>
+                  <span>{booking.show?.date || 'N/A'}</span>
                 </div>
                 <div className="flex items-center text-gray-600">
                   <FaClock className="mr-2" />
-                  <span>{booking.show_time}</span>
+                  <span>{booking.show?.time || 'N/A'}</span>
                 </div>
                 <div className="flex items-center text-gray-600">
                   <FaMapMarkerAlt className="mr-2" />
-                  <span>{booking.cinema_name} - {booking.screen_name}</span>
+                  <span>{booking.show?.cinema_name || 'N/A'} - {booking.show?.screen_name || 'N/A'}</span>
                 </div>
-                <p className="text-sm text-gray-600">{booking.cinema_location}</p>
+                <p className="text-sm text-gray-600">Screen Capacity: {booking.show?.screen?.capacity || 'N/A'} seats</p>
+                <p className="text-sm text-gray-600">Ticket Price: ₹ {booking.show?.ticket_price || 'N/A'}</p>
               </div>
             </div>
           </div>
 
           <div className="space-y-4">
+            <div>
+              <h3 className="font-semibold text-gray-700 mb-2">Cinema Information</h3>
+              <div className="space-y-2">
+                <div className="flex items-center text-gray-600">
+                  <FaMapMarkerAlt className="mr-2" />
+                  <span className="font-medium">{booking.show?.cinema_name || 'N/A'}</span>
+                </div>
+                <p className="text-sm text-gray-600 ml-6">{booking.show?.cinema_location || 'N/A'}</p>
+                {booking.show?.cinemaContactInfo && (
+                  <p className="text-sm text-gray-600 ml-6">Contact: {booking.show.cinema_contact_info}</p>
+                )}
+              </div>
+            </div>
+
             <div>
               <h3 className="font-semibold text-gray-700 mb-2">Seat Information</h3>
               <div className="space-y-2">
@@ -119,16 +156,16 @@ function BookingConfirmation() {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span>Seats ({booking.seats ? booking.seats.length : 0})</span>
-                  <span>${booking.total_amount.toFixed(2)}</span>
+                  <span>₹ {booking.total_amount.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Service Fee</span>
-                  <span>${serviceFee.toFixed(2)}</span>
+                  <span>₹   {serviceFee.toFixed(2)}</span>
                 </div>
                 <div className="border-t pt-2 mt-2">
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total Paid</span>
-                    <span>${totalPaid.toFixed(2)}</span>
+                    <span>₹ {totalPaid.toFixed(2)}</span>
                   </div>
                 </div>
               </div>

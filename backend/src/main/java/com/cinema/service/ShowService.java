@@ -36,6 +36,13 @@ public class ShowService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<ShowDto> getShowsByMovieId(Long movieId) {
+        return showRepository.findByMovieId(movieId).stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public ShowDto createShow(ShowDto showDto) {
         Movie movie = movieRepository.findById(showDto.getMovieId())
@@ -106,6 +113,8 @@ public class ShowService {
         dto.setMovieTitle(show.getMovie().getTitle());
         dto.setScreenId(show.getScreen().getId());
         dto.setScreenName(show.getScreen().getName());
+        dto.setCinemaId(show.getScreen().getCinema().getId());
+        dto.setCinemaName(show.getScreen().getCinema().getName());
         return dto;
     }
 }
