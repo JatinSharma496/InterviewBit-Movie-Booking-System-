@@ -1,24 +1,39 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { FaPlus, FaEdit, FaTrash, FaEye, FaChair, FaUser } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaEye, FaChair, FaUser, FaFilm, FaBuilding, FaCalendarAlt, FaTicketAlt, FaCog, FaSearch, FaFilter } from 'react-icons/fa';
+import { MovieModal, CinemaModal, ScreenModal, ShowModal } from './AdminModals';
 
 function AdminPanel() {
   const { state } = useApp();
-  const [activeTab, setActiveTab] = useState('cinemas');
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   // State for fetched data
   const [cinemas, setCinemas] = useState([]);
   const [movies, setMovies] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [users, setUsers] = useState([]);
-  const [screens, setScreens] = useState([]); // To help with adding shows
-  const [shows, setShows] = useState([]); // State for shows
+  const [screens, setScreens] = useState([]);
+  const [shows, setShows] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
 
-  // State for Add Movie Modal
+  // Search and filter states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+
+  // Modal states
   const [showAddMovieModal, setShowAddMovieModal] = useState(false);
+  const [showEditMovieModal, setShowEditMovieModal] = useState(false);
+  const [showAddCinemaModal, setShowAddCinemaModal] = useState(false);
+  const [showEditCinemaModal, setShowEditCinemaModal] = useState(false);
+  const [showAddScreenModal, setShowAddScreenModal] = useState(false);
+  const [showEditScreenModal, setShowEditScreenModal] = useState(false);
+  const [showAddShowModal, setShowAddShowModal] = useState(false);
+  const [showEditShowModal, setShowEditShowModal] = useState(false);
+
+  // Form states
   const [newMovie, setNewMovie] = useState({
     title: '',
     description: '',
@@ -26,43 +41,38 @@ function AdminPanel() {
     rating: 'PG-13',
     duration: '',
     release_date: '',
-    poster_url: 'https://via.placeholder.com/300x450/000000/FFFFFF?text=New+Movie',
+    poster_url: 'https://via.placeholder.com/300x450/6366f1/FFFFFF?text=New+Movie',
     is_active: true,
-    cinema_id: '' // To select which cinema the movie belongs to
+    cinema_id: ''
   });
 
-  // State for Edit Movie Modal
-  const [showEditMovieModal, setShowEditMovieModal] = useState(false);
-  const [editingMovie, setEditingMovie] = useState(null);
-
-  // State for Add Cinema Modal
-  const [showAddCinemaModal, setShowAddCinemaModal] = useState(false);
   const [newCinema, setNewCinema] = useState({
     name: '',
     location: '',
     contact_info: ''
   });
 
-  // State for Edit Cinema Modal
-  const [showEditCinemaModal, setShowEditCinemaModal] = useState(false);
-  const [editingCinema, setEditingCinema] = useState(null);
+  const [newScreen, setNewScreen] = useState({
+    name: '',
+    capacity: 100,
+    total_rows: 10,
+    seats_per_row: 10,
+    cinema_id: ''
+  });
 
-  // State for Add Show Modal
-  const [showAddShowModal, setShowAddShowModal] = useState(false);
   const [newShow, setNewShow] = useState({
     date: '',
     time: '',
     ticket_price: 15.0,
     is_active: true,
     movie_id: '',
-    screen_id: ''
+    screen_id: '',
+    cinema_id: ''
   });
 
-  // State for Edit Show Modal
-  const [showEditShowModal, setShowEditShowModal] = useState(false);
-  const [editingShow, setEditingShow] = useState(null);
+  const [editingItem, setEditingItem] = useState(null);
 
-  // Fetch all necessary data on component mount
+  // Fetch all data
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -73,7 +83,7 @@ function AdminPanel() {
           fetch('http://localhost:8080/api/bookings'),
           fetch('http://localhost:8080/api/users'),
           fetch('http://localhost:8080/api/screens'),
-          fetch('http://localhost:8080/api/shows') // Fetch all shows
+          fetch('http://localhost:8080/api/shows')
         ]);
 
         if (!cinemasRes.ok) throw new Error(`Failed to fetch cinemas: ${cinemasRes.status}`);
@@ -99,156 +109,590 @@ function AdminPanel() {
     fetchData();
   }, []);
 
-  // Handlers for adding entities
-  const handleAddMovie = async () => {
+  // Generic handlers
+  const handleAdd = async (endpoint, data, setter, resetData, successMsg) => {
     try {
-      const response = await fetch('http://localhost:8080/api/movies', {
+      const response = await fetch(`http://localhost:8080/api/${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newMovie)
+        body: JSON.stringify(data)
       });
-      if (!response.ok) throw new Error(`Failed to add movie: ${response.status}`);
-      const addedMovie = await response.json();
-      setMovies(prev => [...prev, addedMovie]);
-      setShowAddMovieModal(false);
-      setNewMovie({ title: '', description: '', genre: '', rating: 'PG-13', duration: '', release_date: '', poster_url: 'https://via.placeholder.com/300x450/000000/FFFFFF?text=New+Movie', is_active: true, cinema_id: '' });
+      if (!response.ok) throw new Error(`Failed to add ${endpoint}: ${response.status}`);
+      const addedItem = await response.json();
+      setter(prev => [...prev, addedItem]);
+      resetData();
+      setSuccessMessage(successMsg || `${endpoint} added successfully!`);
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (e) {
       setError(e.message);
     }
+  };
+
+  const handleEdit = async (endpoint, id, data, setter, onSuccess) => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/${endpoint}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error(`Failed to update ${endpoint}: ${response.status}`);
+      const updatedItem = await response.json();
+      setter(prev => prev.map(item => (item.id === updatedItem.id ? updatedItem : item)));
+      if (onSuccess) onSuccess();
+    } catch (e) {
+      setError(e.message);
+    }
+  };
+
+  const handleDelete = async (endpoint, id, setter) => {
+    if (!window.confirm('Are you sure you want to delete this item?')) return;
+    try {
+      const response = await fetch(`http://localhost:8080/api/${endpoint}/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error(`Failed to delete ${endpoint}: ${response.status}`);
+      setter(prev => prev.filter(item => item.id !== id));
+    } catch (e) {
+      setError(e.message);
+    }
+  };
+
+  // Specific handlers
+  const handleAddMovie = async () => {
+    await handleAdd('movies', newMovie, setMovies, () => {
+      setNewMovie({
+        title: '', description: '', genre: '', rating: 'PG-13', duration: '', release_date: '',
+        poster_url: 'https://via.placeholder.com/300x450/6366f1/FFFFFF?text=New+Movie', is_active: true, cinema_id: ''
+      });
+      setShowAddMovieModal(false);
+    }, 'Movie added successfully!');
   };
 
   const handleAddCinema = async () => {
-    try {
-      const response = await fetch('http://localhost:8080/api/cinemas', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newCinema)
-      });
-      if (!response.ok) throw new Error(`Failed to add cinema: ${response.status}`);
-      const addedCinema = await response.json();
-      setCinemas(prev => [...prev, addedCinema]);
-      setShowAddCinemaModal(false);
+    await handleAdd('cinemas', newCinema, setCinemas, () => {
       setNewCinema({ name: '', location: '', contact_info: '' });
-    } catch (e) {
-      setError(e.message);
-    }
+      setShowAddCinemaModal(false);
+    }, 'Cinema added successfully!');
+  };
+
+  const handleAddScreen = async () => {
+    await handleAdd('screens', newScreen, setScreens, () => {
+      setNewScreen({ name: '', capacity: 100, total_rows: 10, seats_per_row: 10, cinema_id: '' });
+      setShowAddScreenModal(false);
+    }, 'Screen added successfully!');
   };
 
   const handleAddShow = async () => {
-    try {
-      const response = await fetch('http://localhost:8080/api/shows', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newShow)
-      });
-      if (!response.ok) throw new Error(`Failed to add show: ${response.status}`);
-      const addedShow = await response.json();
-      setShows(prev => [...prev, addedShow]); // Update shows state
+    // Check if we have movies, cinemas, and screens available
+    if (!movies || movies.length === 0) {
+      setError('No movies available. Please add movies first.');
+      return;
+    }
+    if (!cinemas || cinemas.length === 0) {
+      setError('No cinemas available. Please add cinemas first.');
+      return;
+    }
+    if (!screens || screens.length === 0) {
+      setError('No screens available. Please add screens first.');
+      return;
+    }
+    
+    
+    await handleAdd('shows', newShow, setShows, () => {
+      setNewShow({ date: '', time: '', ticket_price: 15.0, is_active: true, movie_id: '', screen_id: '', cinema_id: '' });
       setShowAddShowModal(false);
-      setNewShow({ date: '', time: '', ticket_price: 15.0, is_active: true, movie_id: '', screen_id: '' });
-    } catch (e) {
-      setError(e.message);
-    }
+    }, 'Show added successfully!');
   };
 
-  // Handlers for editing and deleting movies
-  const handleEditMovie = async () => {
-    try {
-      const response = await fetch(`http://localhost:8080/api/movies/${editingMovie.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editingMovie)
-      });
-      if (!response.ok) throw new Error(`Failed to update movie: ${response.status}`);
-      const updatedMovie = await response.json();
-      setMovies(prev => prev.map(m => (m.id === updatedMovie.id ? updatedMovie : m)));
-      setShowEditMovieModal(false);
-      setEditingMovie(null);
-    } catch (e) {
-      setError(e.message);
-    }
+  // Filter functions
+  const filteredMovies = movies.filter(movie => 
+    movie.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    movie.genre.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredBookings = bookings.filter(booking => {
+    const matchesSearch = booking.movie_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         booking.cinema_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === 'all' || booking.status === filterStatus;
+    return matchesSearch && matchesStatus;
+  });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-xl text-gray-600">Loading admin data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <p className="text-xl text-red-600">Error: {error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Success message component
+  const SuccessMessage = () => {
+    if (!successMessage) return null;
+    return (
+      <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center space-x-2">
+        <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
+          <span className="text-green-500 text-sm">✓</span>
+        </div>
+        <span>{successMessage}</span>
+      </div>
+    );
   };
 
-  const handleDeleteMovie = async (movieId) => {
-    if (!window.confirm('Are you sure you want to delete this movie?')) return;
-    try {
-      const response = await fetch(`http://localhost:8080/api/movies/${movieId}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error(`Failed to delete movie: ${response.status}`);
-      setMovies(prev => prev.filter(m => m.id !== movieId));
-    } catch (e) {
-      setError(e.message);
-    }
-  };
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <SuccessMessage />
+      {/* Header */}
+      <div className="bg-white shadow-lg border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+              <p className="text-gray-600 mt-1">Manage your cinema system</p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <FaFilter className="text-gray-400" />
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="all">All Status</option>
+                  <option value="CONFIRMED">Confirmed</option>
+                  <option value="CANCELLED">Cancelled</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-  // Handlers for editing and deleting cinemas
-  const handleEditCinema = async () => {
-    try {
-      const response = await fetch(`http://localhost:8080/api/cinemas/${editingCinema.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editingCinema)
-      });
-      if (!response.ok) throw new Error(`Failed to update cinema: ${response.status}`);
-      const updatedCinema = await response.json();
-      setCinemas(prev => prev.map(c => (c.id === updatedCinema.id ? updatedCinema : c)));
-      setShowEditCinemaModal(false);
-      setEditingCinema(null);
-    } catch (e) {
-      setError(e.message);
-    }
-  };
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Tab Navigation */}
+        <div className="bg-white rounded-xl shadow-lg mb-8 overflow-hidden">
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-8 px-6 overflow-x-auto">
+              {[
+                { id: 'dashboard', label: 'Dashboard', icon: FaCog },
+                { id: 'cinemas', label: 'Cinemas', icon: FaBuilding },
+                { id: 'movies', label: 'Movies', icon: FaFilm },
+                { id: 'screens', label: 'Screens', icon: FaChair },
+                { id: 'shows', label: 'Shows', icon: FaCalendarAlt },
+                { id: 'bookings', label: 'Bookings', icon: FaTicketAlt },
+                { id: 'users', label: 'Users', icon: FaUser }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap flex items-center space-x-2 ${
+                    activeTab === tab.id
+                      ? 'border-indigo-500 text-indigo-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  <span>{tab.label}</span>
+                </button>
+              ))}
+            </nav>
+          </div>
+        </div>
 
-  const handleDeleteCinema = async (cinemaId) => {
-    if (!window.confirm('Are you sure you want to delete this cinema?')) return;
-    try {
-      const response = await fetch(`http://localhost:8080/api/cinemas/${cinemaId}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error(`Failed to delete cinema: ${response.status}`);
-      setCinemas(prev => prev.filter(c => c.id !== cinemaId));
-    } catch (e) {
-      setError(e.message);
-    }
-  };
+        {/* Tab Content */}
+        <div className="space-y-8">
+          {activeTab === 'dashboard' && <DashboardTab cinemas={cinemas} movies={movies} bookings={bookings} shows={shows} />}
+          {activeTab === 'cinemas' && <CinemasTab cinemas={cinemas} setCinemas={setCinemas} setShowAddCinemaModal={setShowAddCinemaModal} setShowEditCinemaModal={setShowEditCinemaModal} setEditingItem={setEditingItem} handleDelete={handleDelete} />}
+          {activeTab === 'movies' && <MoviesTab movies={filteredMovies} setMovies={setMovies} cinemas={cinemas} setShowAddMovieModal={setShowAddMovieModal} setShowEditMovieModal={setShowEditMovieModal} setEditingItem={setEditingItem} handleDelete={handleDelete} />}
+          {activeTab === 'screens' && <ScreensTab screens={screens} setScreens={setScreens} cinemas={cinemas} setShowAddScreenModal={setShowAddScreenModal} setShowEditScreenModal={setShowEditScreenModal} setEditingItem={setEditingItem} handleDelete={handleDelete} />}
+          {activeTab === 'shows' && <ShowsTab shows={shows} setShows={setShows} movies={movies} screens={screens} cinemas={cinemas} setShowAddShowModal={setShowAddShowModal} setShowEditShowModal={setShowEditShowModal} setEditingItem={setEditingItem} handleDelete={handleDelete} setError={setError} />}
+          {activeTab === 'bookings' && <BookingsTab bookings={filteredBookings} users={users} />}
+          {activeTab === 'users' && <UsersTab users={users} />}
+        </div>
+      </div>
 
-  // Handlers for editing and deleting shows
-  const handleEditShow = async () => {
-    try {
-      const response = await fetch(`http://localhost:8080/api/shows/${editingShow.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editingShow)
-      });
-      if (!response.ok) throw new Error(`Failed to update show: ${response.status}`);
-      const updatedShow = await response.json();
-      setShows(prev => prev.map(s => (s.id === updatedShow.id ? updatedShow : s)));
-      setShowEditShowModal(false);
-      setEditingShow(null);
-    } catch (e) {
-      setError(e.message);
-    }
-  };
+      {/* Modals */}
+      <MovieModal 
+        show={showAddMovieModal || showEditMovieModal} 
+        onClose={() => { setShowAddMovieModal(false); setShowEditMovieModal(false); setEditingItem(null); }}
+        onSubmit={showAddMovieModal ? handleAddMovie : () => handleEdit('movies', editingItem.id, editingItem, setMovies, () => { setShowEditMovieModal(false); setEditingItem(null); })}
+        data={showAddMovieModal ? newMovie : editingItem}
+        setData={showAddMovieModal ? setNewMovie : setEditingItem}
+        cinemas={cinemas}
+        isEdit={showEditMovieModal}
+      />
 
-  const handleDeleteShow = async (showId) => {
-    if (!window.confirm('Are you sure you want to delete this show?')) return;
-    try {
-      const response = await fetch(`http://localhost:8080/api/shows/${showId}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error(`Failed to delete show: ${response.status}`);
-      setShows(prev => prev.filter(s => s.id !== showId));
-    } catch (e) {
-      setError(e.message);
-    }
-  };
+      <CinemaModal 
+        show={showAddCinemaModal || showEditCinemaModal} 
+        onClose={() => { setShowAddCinemaModal(false); setShowEditCinemaModal(false); setEditingItem(null); }}
+        onSubmit={showAddCinemaModal ? handleAddCinema : () => handleEdit('cinemas', editingItem.id, editingItem, setCinemas, () => { setShowEditCinemaModal(false); setEditingItem(null); })}
+        data={showAddCinemaModal ? newCinema : editingItem}
+        setData={showAddCinemaModal ? setNewCinema : setEditingItem}
+        isEdit={showEditCinemaModal}
+      />
 
-  const getBookingUser = (userId) => {
-    const user = users.find(u => u.id === userId);
-    return user ? user.name : 'Unknown';
-  };
+      <ScreenModal 
+        show={showAddScreenModal || showEditScreenModal} 
+        onClose={() => { setShowAddScreenModal(false); setShowEditScreenModal(false); setEditingItem(null); }}
+        onSubmit={showAddScreenModal ? handleAddScreen : () => handleEdit('screens', editingItem.id, editingItem, setScreens, () => { setShowEditScreenModal(false); setEditingItem(null); })}
+        data={showAddScreenModal ? newScreen : editingItem}
+        setData={showAddScreenModal ? setNewScreen : setEditingItem}
+        cinemas={cinemas}
+        isEdit={showEditScreenModal}
+      />
 
+      <ShowModal 
+        show={showAddShowModal || showEditShowModal} 
+        onClose={() => { setShowAddShowModal(false); setShowEditShowModal(false); setEditingItem(null); }}
+        onSubmit={showAddShowModal ? handleAddShow : () => handleEdit('shows', editingItem.id, editingItem, setShows, () => { setShowEditShowModal(false); setEditingItem(null); })}
+        data={showAddShowModal ? newShow : editingItem}
+        setData={showAddShowModal ? setNewShow : setEditingItem}
+        movies={movies}
+        screens={screens}
+        cinemas={cinemas}
+        isEdit={showEditShowModal}
+      />
+    </div>
+  );
+}
+
+// Dashboard Tab Component
+function DashboardTab({ cinemas, movies, bookings, shows }) {
+  const totalRevenue = bookings.reduce((sum, booking) => sum + (booking.total_amount || 0), 0);
+  const confirmedBookings = bookings.filter(b => b.status === 'CONFIRMED').length;
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+        <div className="flex items-center">
+          <div className="p-3 rounded-full bg-blue-100">
+            <FaBuilding className="w-6 h-6 text-blue-600" />
+          </div>
+          <div className="ml-4">
+            <p className="text-sm font-medium text-gray-600">Total Cinemas</p>
+            <p className="text-2xl font-bold text-gray-900">{cinemas.length}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
+        <div className="flex items-center">
+          <div className="p-3 rounded-full bg-green-100">
+            <FaFilm className="w-6 h-6 text-green-600" />
+          </div>
+          <div className="ml-4">
+            <p className="text-sm font-medium text-gray-600">Total Movies</p>
+            <p className="text-2xl font-bold text-gray-900">{movies.length}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-yellow-500">
+        <div className="flex items-center">
+          <div className="p-3 rounded-full bg-yellow-100">
+            <FaTicketAlt className="w-6 h-6 text-yellow-600" />
+          </div>
+          <div className="ml-4">
+            <p className="text-sm font-medium text-gray-600">Confirmed Bookings</p>
+            <p className="text-2xl font-bold text-gray-900">{confirmedBookings}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
+        <div className="flex items-center">
+          <div className="p-3 rounded-full bg-purple-100">
+            <FaCalendarAlt className="w-6 h-6 text-purple-600" />
+          </div>
+          <div className="ml-4">
+            <p className="text-sm font-medium text-gray-600">Total Shows</p>
+            <p className="text-2xl font-bold text-gray-900">{shows.length}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-indigo-500 col-span-1 md:col-span-2 lg:col-span-4">
+        <div className="flex items-center">
+          <div className="p-3 rounded-full bg-indigo-100">
+            <FaCog className="w-6 h-6 text-indigo-600" />
+          </div>
+          <div className="ml-4">
+            <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+            <p className="text-3xl font-bold text-gray-900">${totalRevenue.toFixed(2)}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Cinemas Tab Component
+function CinemasTab({ cinemas, setCinemas, setShowAddCinemaModal, setShowEditCinemaModal, setEditingItem, handleDelete }) {
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900">Cinemas</h2>
+        <button
+          onClick={() => setShowAddCinemaModal(true)}
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center space-x-2"
+        >
+          <FaPlus className="w-4 h-4" />
+          <span>Add Cinema</span>
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {cinemas.map(cinema => (
+          <div key={cinema.id} className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">{cinema.name}</h3>
+                <p className="text-gray-600">{cinema.location}</p>
+                <p className="text-sm text-gray-500 mt-1">Contact: {cinema.contact_info}</p>
+              </div>
+              <div className="flex space-x-2">
+                <button 
+                  onClick={() => { setEditingItem(cinema); setShowEditCinemaModal(true); }}
+                  className="text-indigo-600 hover:text-indigo-800"
+                >
+                  <FaEdit />
+                </button>
+                <button 
+                  onClick={() => handleDelete('cinemas', cinema.id, setCinemas)}
+                  className="text-red-600 hover:text-red-800"
+                >
+                  <FaTrash />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Movies Tab Component
+function MoviesTab({ movies, setMovies, cinemas, setShowAddMovieModal, setShowEditMovieModal, setEditingItem, handleDelete }) {
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900">Movies</h2>
+        <button
+          onClick={() => setShowAddMovieModal(true)}
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center space-x-2"
+        >
+          <FaPlus className="w-4 h-4" />
+          <span>Add Movie</span>
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {movies.map(movie => (
+          <div key={movie.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+            <img 
+              src={movie.poster_url} 
+              alt={movie.title} 
+              className="w-full h-64 object-cover"
+            />
+            <div className="p-4">
+              <h3 className="font-bold text-gray-900 mb-2">{movie.title}</h3>
+              <div className="space-y-1 text-sm text-gray-600">
+                <p>Duration: {movie.duration} min</p>
+                <p>Genre: {movie.genre}</p>
+                <p>Rating: {movie.rating}</p>
+                <p>Release: {movie.release_date}</p>
+              </div>
+              <div className="mt-4 flex space-x-2">
+                <button 
+                  onClick={() => { setEditingItem(movie); setShowEditMovieModal(true); }}
+                  className="text-indigo-600 hover:text-indigo-800 text-sm flex items-center space-x-1"
+                >
+                  <FaEdit className="w-3 h-3" />
+                  <span>Edit</span>
+                </button>
+                <button 
+                  onClick={() => handleDelete('movies', movie.id, setMovies)}
+                  className="text-red-600 hover:text-red-800 text-sm flex items-center space-x-1"
+                >
+                  <FaTrash className="w-3 h-3" />
+                  <span>Delete</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Screens Tab Component
+function ScreensTab({ screens, setScreens, cinemas, setShowAddScreenModal, setShowEditScreenModal, setEditingItem, handleDelete }) {
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900">Screens</h2>
+        <button
+          onClick={() => setShowAddScreenModal(true)}
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center space-x-2"
+        >
+          <FaPlus className="w-4 h-4" />
+          <span>Add Screen</span>
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {screens.map(screen => (
+          <div key={screen.id} className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">{screen.name}</h3>
+                <p className="text-gray-600">{cinemas.find(c => c.id === screen.cinema_id)?.name}</p>
+                <p className="text-sm text-gray-500 mt-1">Capacity: {screen.capacity} seats</p>
+                <p className="text-sm text-gray-500">Layout: {screen.total_rows} rows × {screen.seats_per_row} seats</p>
+              </div>
+              <div className="flex space-x-2">
+                <button 
+                  onClick={() => { setEditingItem(screen); setShowEditScreenModal(true); }}
+                  className="text-indigo-600 hover:text-indigo-800"
+                >
+                  <FaEdit />
+                </button>
+                <button 
+                  onClick={() => handleDelete('screens', screen.id, setScreens)}
+                  className="text-red-600 hover:text-red-800"
+                >
+                  <FaTrash />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Shows Tab Component
+function ShowsTab({ shows, setShows, movies, screens, cinemas, setShowAddShowModal, setShowEditShowModal, setEditingItem, handleDelete, setError }) {
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900">Shows</h2>
+        <button
+          onClick={() => {
+            if (!movies || movies.length === 0) {
+              setError('No movies available. Please add movies first.');
+              return;
+            }
+            if (!cinemas || cinemas.length === 0) {
+              setError('No cinemas available. Please add cinemas first.');
+              return;
+            }
+            if (!screens || screens.length === 0) {
+              setError('No screens available. Please add screens first.');
+              return;
+            }
+            setShowAddShowModal(true);
+          }}
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center space-x-2"
+        >
+          <FaPlus className="w-4 h-4" />
+          <span>Add Show</span>
+        </button>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Movie</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Screen</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {shows.map(show => (
+                <tr key={show.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">
+                      {movies.find(m => m.id === show.movie_id)?.title || 'Unknown Movie'}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
+                      {screens.find(s => s.id === show.screen_id)?.name || 'Unknown Screen'}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{show.date} at {show.time}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">${show.ticket_price}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                      show.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
+                      {show.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex space-x-2">
+                      <button 
+                        onClick={() => { setEditingItem(show); setShowEditShowModal(true); }}
+                        className="text-indigo-600 hover:text-indigo-900"
+                      >
+                        <FaEdit />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete('shows', show.id, setShows)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Bookings Tab Component
+function BookingsTab({ bookings, users }) {
   const getStatusColor = (status) => {
     switch (status) {
       case 'CONFIRMED': return 'bg-green-100 text-green-800';
@@ -257,736 +701,84 @@ function AdminPanel() {
     }
   };
 
-  if (loading) {
-    return <div className="text-center py-12 text-xl">Loading admin data...</div>;
-  }
-
-  if (error) {
-    return <div className="text-center py-12 text-xl text-red-500">Error: {error}</div>;
-  }
-
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Admin Panel</h1>
-        <p className="text-gray-600">Manage cinemas, movies, and view booking analytics</p>
-      </div>
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-gray-900">Bookings</h2>
 
-      {/* Tab Navigation */}
-      <div className="bg-white rounded-lg shadow-lg mb-6">
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-6">
-            {[
-              { id: 'cinemas', label: 'Cinemas & Movies' },
-              { id: 'shows', label: 'Shows' }, // New tab for shows
-              { id: 'bookings', label: 'Booking Analytics' },
-              { id: 'seats', label: 'Seat Management' }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </nav>
-        </div>
-      </div>
-
-      {/* Tab Content */}
-      {activeTab === 'cinemas' && (
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-gray-800">Cinemas & Movies</h2>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => setShowAddCinemaModal(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-              >
-                <FaPlus className="mr-2" />
-                Add Cinema
-              </button>
-              <button
-                onClick={() => setShowAddMovieModal(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-              >
-                <FaPlus className="mr-2" />
-                Add Movie
-              </button>
-            </div>
-          </div>
-
-          {cinemas.map(cinema => (
-            <div key={cinema.id} className="bg-white rounded-lg shadow-lg p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-xl font-bold text-gray-800">{cinema.name}</h3>
-                  <p className="text-gray-600">{cinema.location}</p>
-                  <p className="text-sm text-gray-500">Contact: {cinema.contact_info}</p>
-                </div>
-                <div className="flex space-x-2">
-                  <button 
-                    onClick={() => { setEditingCinema(cinema); setShowEditCinemaModal(true); }}
-                    className="text-blue-600 hover:text-blue-800"
-                  >
-                    <FaEdit />
-                  </button>
-                  <button 
-                    onClick={() => handleDeleteCinema(cinema.id)}
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    <FaTrash />
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {movies.filter(movie => movie.cinema_id === cinema.id).map(movie => (
-                  <div key={movie.id} className="border border-gray-200 rounded-lg p-4">
-                    <img src={movie.poster_url} alt={movie.title} className="w-full h-48 object-cover rounded mb-3" />
-                    <h4 className="font-semibold text-gray-800 mb-2">{movie.title}</h4>
-                    <div className="space-y-1 text-sm text-gray-600">
-                      <p>Duration: {movie.duration} min</p>
-                      <p>Genre: {movie.genre}</p>
-                      <p>Rating: {movie.rating}</p>
-                      <p>Release: {movie.release_date}</p>
-                    </div>
-                    <div className="mt-3 flex space-x-2">
-                      <button 
-                        onClick={() => { setEditingMovie(movie); setShowEditMovieModal(true); }}
-                        className="text-blue-600 hover:text-blue-800 text-sm"
-                      >
-                        <FaEdit className="inline mr-1" />
-                        Edit
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteMovie(movie.id)}
-                        className="text-red-600 hover:text-red-800 text-sm"
-                      >
-                        <FaTrash className="inline mr-1" />
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-
-          {/* Add Movie Modal */}
-          {showAddMovieModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">Add New Movie</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                    <input
-                      type="text"
-                      name="title"
-                      value={newMovie.title}
-                      onChange={(e) => setNewMovie({...newMovie, title: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      placeholder="Movie title"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                    <textarea
-                      name="description"
-                      value={newMovie.description}
-                      onChange={(e) => setNewMovie({...newMovie, description: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      placeholder="Movie description"
-                    ></textarea>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Genre</label>
-                    <input
-                      type="text"
-                      name="genre"
-                      value={newMovie.genre}
-                      onChange={(e) => setNewMovie({...newMovie, genre: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      placeholder="e.g., Action, Drama"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
-                    <select
-                      name="rating"
-                      value={newMovie.rating}
-                      onChange={(e) => setNewMovie({...newMovie, rating: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    >
-                      <option value="G">G</option>
-                      <option value="PG">PG</option>
-                      <option value="PG-13">PG-13</option>
-                      <option value="R">R</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Duration (min)</label>
-                    <input
-                      type="number"
-                      name="duration"
-                      value={newMovie.duration}
-                      onChange={(e) => setNewMovie({...newMovie, duration: parseInt(e.target.value)})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      placeholder="e.g., 120"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Release Date</label>
-                    <input
-                      type="date"
-                      name="release_date"
-                      value={newMovie.release_date}
-                      onChange={(e) => setNewMovie({...newMovie, release_date: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Poster URL</label>
-                    <input
-                      type="text"
-                      name="poster_url"
-                      value={newMovie.poster_url}
-                      onChange={(e) => setNewMovie({...newMovie, poster_url: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      placeholder="https://example.com/poster.jpg"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Cinema</label>
-                    <select
-                      name="cinema_id"
-                      value={newMovie.cinema_id}
-                      onChange={(e) => setNewMovie({...newMovie, cinema_id: parseInt(e.target.value)})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    >
-                      <option value="">Select Cinema</option>
-                      {cinemas.map(cinema => (
-                        <option key={cinema.id} value={cinema.id}>{cinema.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                <div className="flex justify-end space-x-3 mt-6">
-                  <button
-                    onClick={() => setShowAddMovieModal(false)}
-                    className="px-4 py-2 text-gray-600 hover:text-gray-800"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleAddMovie}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                  >
-                    Add Movie
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Edit Movie Modal */}
-          {showEditMovieModal && editingMovie && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">Edit Movie</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                    <input
-                      type="text"
-                      name="title"
-                      value={editingMovie.title}
-                      onChange={(e) => setEditingMovie({...editingMovie, title: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      placeholder="Movie title"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                    <textarea
-                      name="description"
-                      value={editingMovie.description}
-                      onChange={(e) => setEditingMovie({...editingMovie, description: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      placeholder="Movie description"
-                    ></textarea>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Genre</label>
-                    <input
-                      type="text"
-                      name="genre"
-                      value={editingMovie.genre}
-                      onChange={(e) => setEditingMovie({...editingMovie, genre: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      placeholder="e.g., Action, Drama"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
-                    <select
-                      name="rating"
-                      value={editingMovie.rating}
-                      onChange={(e) => setEditingMovie({...editingMovie, rating: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    >
-                      <option value="G">G</option>
-                      <option value="PG">PG</option>
-                      <option value="PG-13">PG-13</option>
-                      <option value="R">R</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Duration (min)</label>
-                    <input
-                      type="number"
-                      name="duration"
-                      value={editingMovie.duration}
-                      onChange={(e) => setEditingMovie({...editingMovie, duration: parseInt(e.target.value)})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      placeholder="e.g., 120"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Release Date</label>
-                    <input
-                      type="date"
-                      name="release_date"
-                      value={editingMovie.release_date}
-                      onChange={(e) => setEditingMovie({...editingMovie, release_date: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Poster URL</label>
-                    <input
-                      type="text"
-                      name="poster_url"
-                      value={editingMovie.poster_url}
-                      onChange={(e) => setEditingMovie({...editingMovie, poster_url: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      placeholder="https://example.com/poster.jpg"
-                    />
-                  </div>
-                  {/* Cinema ID is not editable for simplicity */}
-                </div>
-                <div className="flex justify-end space-x-3 mt-6">
-                  <button
-                    onClick={() => { setShowEditMovieModal(false); setEditingMovie(null); }}
-                    className="px-4 py-2 text-gray-600 hover:text-gray-800"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleEditMovie}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                  >
-                    Save Changes
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Add Cinema Modal */}
-          {showAddCinemaModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">Add New Cinema</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={newCinema.name}
-                      onChange={(e) => setNewCinema({...newCinema, name: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      placeholder="Cinema Name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                    <input
-                      type="text"
-                      name="location"
-                      value={newCinema.location}
-                      onChange={(e) => setNewCinema({...newCinema, location: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      placeholder="e.g., 123 Main St"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Contact Info</label>
-                    <input
-                      type="text"
-                      name="contact_info"
-                      value={newCinema.contact_info}
-                      onChange={(e) => setNewCinema({...newCinema, contact_info: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      placeholder="e.g., +1-555-1234"
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-end space-x-3 mt-6">
-                  <button
-                    onClick={() => setShowAddCinemaModal(false)}
-                    className="px-4 py-2 text-gray-600 hover:text-gray-800"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleAddCinema}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                  >
-                    Add Cinema
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Edit Cinema Modal */}
-          {showEditCinemaModal && editingCinema && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">Edit Cinema</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={editingCinema.name}
-                      onChange={(e) => setEditingCinema({...editingCinema, name: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      placeholder="Cinema Name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                    <input
-                      type="text"
-                      name="location"
-                      value={editingCinema.location}
-                      onChange={(e) => setEditingCinema({...editingCinema, location: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      placeholder="e.g., 123 Main St"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Contact Info</label>
-                    <input
-                      type="text"
-                      name="contact_info"
-                      value={editingCinema.contact_info}
-                      onChange={(e) => setEditingCinema({...editingCinema, contact_info: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      placeholder="e.g., +1-555-1234"
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-end space-x-3 mt-6">
-                  <button
-                    onClick={() => { setShowEditCinemaModal(false); setEditingCinema(null); }}
-                    className="px-4 py-2 text-gray-600 hover:text-gray-800"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleEditCinema}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                  >
-                    Save Changes
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Add Show Modal */}
-          {showAddShowModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">Add New Show</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Movie</label>
-                    <select
-                      name="movie_id"
-                      value={newShow.movie_id}
-                      onChange={(e) => setNewShow({...newShow, movie_id: parseInt(e.target.value)})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    >
-                      <option value="">Select Movie</option>
-                      {movies.map(movie => (
-                        <option key={movie.id} value={movie.id}>{movie.title}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Screen</label>
-                    <select
-                      name="screen_id"
-                      value={newShow.screen_id}
-                      onChange={(e) => setNewShow({...newShow, screen_id: parseInt(e.target.value)})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    >
-                      <option value="">Select Screen</option>
-                      {screens.map(screen => (
-                        <option key={screen.id} value={screen.id}>{screen.name} ({cinemas.find(c => c.id === screen.cinema_id)?.name})</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                    <input
-                      type="date"
-                      name="date"
-                      value={newShow.date}
-                      onChange={(e) => setNewShow({...newShow, date: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Time</label>
-                    <input
-                      type="time"
-                      name="time"
-                      value={newShow.time}
-                      onChange={(e) => setNewShow({...newShow, time: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Ticket Price</label>
-                    <input
-                      type="number"
-                      name="ticket_price"
-                      value={newShow.ticket_price}
-                      onChange={(e) => setNewShow({...newShow, ticket_price: parseFloat(e.target.value)})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-end space-x-3 mt-6">
-                  <button
-                    onClick={() => setShowAddShowModal(false)}
-                    className="px-4 py-2 text-gray-600 hover:text-gray-800"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleAddShow}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                  >
-                    Add Show
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {activeTab === 'bookings' && (
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-gray-800">Booking Analytics</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Total Bookings</h3>
-              <p className="text-3xl font-bold text-blue-600">{bookings.length}</p>
-            </div>
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Confirmed Bookings</h3>
-              <p className="text-3xl font-bold text-green-600">
-                {bookings.filter(b => b.status === 'CONFIRMED').length}
-              </p>
-            </div>
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Total Revenue</h3>
-              <p className="text-3xl font-bold text-green-600">
-                ${bookings.reduce((sum, b) => sum + b.total_amount + 2, 0).toFixed(2)}
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">Recent Bookings</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-2">Booking ID</th>
-                    <th className="text-left py-2">Movie</th>
-                    <th className="text-left py-2">Cinema</th>
-                    <th className="text-left py-2">Seats</th>
-                    <th className="text-left py-2">Amount</th>
-                    <th className="text-left py-2">Status</th>
-                    <th className="text-left py-2">Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bookings.slice(0, 10).map(booking => {
-                    return (
-                      <tr key={booking.id} className="border-b border-gray-100">
-                        <td className="py-2 text-sm">#{booking.id}</td>
-                        <td className="py-2 text-sm">{booking.movie_title}</td>
-                        <td className="py-2 text-sm">{booking.cinema_name}</td>
-                        <td className="py-2 text-sm">{booking.seats ? booking.seats.length : 0}</td>
-                        <td className="py-2 text-sm">${(booking.total_amount + 2).toFixed(2)}</td>
-                        <td className="py-2">
-                          <span className={`px-2 py-1 rounded text-xs ${getStatusColor(booking.status)}`}>
-                            {booking.status.charAt(0).toUpperCase() + booking.status.slice(1).toLowerCase()}
-                          </span>
-                        </td>
-                        <td className="py-2 text-sm">
-                          {new Date(booking.booking_date).toLocaleDateString()}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'seats' && (
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-gray-800">Seat Management</h2>
-          
-          {cinemas.map(cinema => (
-            <div key={cinema.id} className="bg-white rounded-lg shadow-lg p-6 mb-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">{cinema.name}</h3>
-              
-              {screens.filter(screen => screen.cinema_id === cinema.id).map(screen => (
-                <div key={screen.id} className="mb-6 border-b pb-4">
-                  <h4 className="text-lg font-semibold text-gray-700 mb-3">{screen.name} (Capacity: {screen.capacity})</h4>
-                  
-                  {/* Fetch seats for this screen */}
-                  <ScreenSeatMap screenId={screen.id} users={users} bookings={bookings} />
-                </div>
+      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Movie</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cinema</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Seats</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {bookings.map(booking => (
+                <tr key={booking.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    #{booking.id}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {booking.movie_title}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {booking.cinema_name}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {booking.seats ? booking.seats.length : 0}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    ${(booking.total_amount + 2).toFixed(2)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(booking.status)}`}>
+                      {booking.status.charAt(0).toUpperCase() + booking.status.slice(1).toLowerCase()}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {new Date(booking.booking_date).toLocaleDateString()}
+                  </td>
+                </tr>
               ))}
-            </div>
-          ))}
+            </tbody>
+          </table>
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
-// New component to fetch and display seats for a single screen
-function ScreenSeatMap({ screenId, users, bookings }) {
-  const [seats, setSeats] = useState([]);
-  const [loadingSeats, setLoadingSeats] = useState(true);
-  const [errorSeats, setErrorSeats] = useState(null);
-
-  useEffect(() => {
-    const fetchSeats = async () => {
-      setLoadingSeats(true);
-      try {
-        const response = await fetch(`http://localhost:8080/api/seats/screen/${screenId}`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        setSeats(data);
-      } catch (e) {
-        setErrorSeats(e.message);
-      } finally {
-        setLoadingSeats(false);
-      }
-    };
-    fetchSeats();
-  }, [screenId]);
-
-  const getSeatStatus = (seat) => {
-    if (seat.status === 'BOOKED') return 'booked';
-    if (seat.status === 'BLOCKED') return 'blocked';
-    return 'available';
-  };
-
-  const getSeatColor = (status) => {
-    switch (status) {
-      case 'booked': return 'bg-red-500 text-white';
-      case 'blocked': return 'bg-yellow-500 text-white';
-      default: return 'bg-gray-200 text-gray-800';
-    }
-  };
-
-  const getBookingUser = (bookingId) => {
-    const booking = bookings.find(b => b.id === bookingId);
-    if (booking) {
-      const user = users.find(u => u.id === booking.user_id);
-      return user ? user.name : 'Unknown';
-    }
-    return 'Unknown';
-  };
-
-  if (loadingSeats) return <div className="text-center text-sm">Loading seats...</div>;
-  if (errorSeats) return <div className="text-center text-sm text-red-500">Error loading seats: {errorSeats}</div>;
-
-  const seatsByRow = seats.reduce((acc, seat) => {
-    if (!acc[seat.seat_row]) acc[seat.seat_row] = [];
-    acc[seat.seat_row].push(seat);
-    return acc;
-  }, {});
-
+// Users Tab Component
+function UsersTab({ users }) {
   return (
-    <>
-      <div className="bg-gray-800 text-white text-center py-2 mb-4 rounded">
-        SCREEN
-      </div>
-      
-      <div className="space-y-1">
-        {Object.entries(seatsByRow).map(([row, rowSeats]) => (
-          <div key={row} className="flex justify-center space-x-1">
-            <div className="w-8 text-center text-sm font-medium text-gray-600 flex items-center">
-              Row {row}
-            </div>
-            {rowSeats.map(seat => (
-              <div
-                key={seat.id}
-                className={`w-8 h-8 rounded text-xs font-medium flex items-center justify-center ${getSeatColor(getSeatStatus(seat))}`}
-                title={seat.status === 'BOOKED' ? `Booked by: ${getBookingUser(seat.booking_id)}` : ''}
-              >
-                {seat.seat_number}
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-gray-900">Users</h2>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {users.map(user => (
+          <div key={user.id} className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
+                <FaUser className="w-6 h-6 text-indigo-600" />
               </div>
-            ))}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">{user.name}</h3>
+                <p className="text-gray-600">{user.email}</p>
+              </div>
+            </div>
           </div>
         ))}
       </div>
-      
-      <div className="mt-4 flex justify-center space-x-6 text-sm">
-        <div className="flex items-center">
-          <div className="w-4 h-4 bg-gray-200 rounded mr-2"></div>
-          <span>Available</span>
-        </div>
-        <div className="flex items-center">
-          <div className="w-4 h-4 bg-yellow-500 rounded mr-2"></div>
-          <span>Blocked</span>
-        </div>
-        <div className="flex items-center">
-          <div className="w-4 h-4 bg-red-500 rounded mr-2"></div>
-          <span>Booked</span>
-        </div>
-      </div>
-    </>
+    </div>
   );
 }
+
 
 export default AdminPanel;

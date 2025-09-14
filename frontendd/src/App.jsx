@@ -13,17 +13,19 @@ function App() {
   return (
     <AppProvider>
       <Router>
-        <div className="min-h-screen bg-gray-100">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
           <Navbar />
-          <main className="container mx-auto px-4 py-8">
-            <Routes>
-              <Route path="/" element={<CinemaList />} />
-              <Route path="/cinema/:cinemaId" element={<MovieList />} />
-              <Route path="/booking/:cinemaId/:movieId/:showtimeId" element={<SeatSelection />} />
-              <Route path="/confirmation/:bookingId" element={<BookingConfirmation />} />
-              <Route path="/history" element={<BookingHistory />} />
-              <Route path="/admin" element={<AdminPanel />} />
-            </Routes>
+          <main className="container mx-auto px-4 py-8 max-w-7xl">
+            <div className="min-h-screen">
+              <Routes>
+                <Route path="/" element={<CinemaList />} />
+                <Route path="/cinema/:cinemaId" element={<MovieList />} />
+                <Route path="/booking/:cinemaId/:movieId/:showtimeId" element={<SeatSelection />} />
+                <Route path="/confirmation/:bookingId" element={<BookingConfirmation />} />
+                <Route path="/history" element={<BookingHistory />} />
+                <Route path="/admin" element={<AdminPanel />} />
+              </Routes>
+            </div>
           </main>
         </div>
       </Router>

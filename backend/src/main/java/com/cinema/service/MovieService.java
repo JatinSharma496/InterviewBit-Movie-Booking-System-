@@ -78,6 +78,18 @@ public class MovieService {
         movieRepository.deleteById(id);
     }
 
+    @Transactional
+    public MovieDto assignMovieToCinema(Long movieId, Long cinemaId) {
+        Movie movie = movieRepository.findById(movieId)
+                .orElseThrow(() -> new RuntimeException("Movie not found with id: " + movieId));
+        Cinema cinema = cinemaRepository.findById(cinemaId)
+                .orElseThrow(() -> new RuntimeException("Cinema not found with id: " + cinemaId));
+        
+        movie.setCinema(cinema);
+        Movie savedMovie = movieRepository.save(movie);
+        return convertMovieToDto(savedMovie);
+    }
+
     private MovieDto convertMovieToDto(Movie movie) {
         MovieDto dto = new MovieDto();
         dto.setId(movie.getId());

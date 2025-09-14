@@ -43,6 +43,13 @@ public class ShowService {
         Screen screen = screenRepository.findById(showDto.getScreenId())
                 .orElseThrow(() -> new RuntimeException("Screen not found with id: " + showDto.getScreenId()));
 
+        // Validate that movie and screen belong to the same cinema
+        if (!movie.getCinema().getId().equals(screen.getCinema().getId())) {
+            throw new RuntimeException("Movie and screen must belong to the same cinema. " +
+                    "Movie belongs to cinema: " + movie.getCinema().getName() + 
+                    ", but screen belongs to cinema: " + screen.getCinema().getName());
+        }
+
         Show show = new Show();
         show.setDate(showDto.getDate());
         show.setTime(showDto.getTime());
@@ -64,6 +71,13 @@ public class ShowService {
                 .orElseThrow(() -> new RuntimeException("Movie not found with id: " + showDto.getMovieId()));
         Screen screen = screenRepository.findById(showDto.getScreenId())
                 .orElseThrow(() -> new RuntimeException("Screen not found with id: " + showDto.getScreenId()));
+
+        // Validate that movie and screen belong to the same cinema
+        if (!movie.getCinema().getId().equals(screen.getCinema().getId())) {
+            throw new RuntimeException("Movie and screen must belong to the same cinema. " +
+                    "Movie belongs to cinema: " + movie.getCinema().getName() + 
+                    ", but screen belongs to cinema: " + screen.getCinema().getName());
+        }
 
         show.setDate(showDto.getDate());
         show.setTime(showDto.getTime());

@@ -39,8 +39,13 @@ public class BookingService {
         }
         
         for (Seat seat : seats) {
-            if (seat.getStatus() != Seat.SeatStatus.AVAILABLE) {
-                throw new RuntimeException("Seat " + seat.getSeatCode() + " is not available");
+            // Allow AVAILABLE seats or BLOCKED seats that are blocked by the current user
+            if (seat.getStatus() == Seat.SeatStatus.BOOKED) {
+                throw new RuntimeException("Seat " + seat.getSeatCode() + " is already booked");
+            }
+            if (seat.getStatus() == Seat.SeatStatus.BLOCKED && 
+                (seat.getBlockedByUser() == null || !seat.getBlockedByUser().getId().equals(request.getUserId()))) {
+                throw new RuntimeException("Seat " + seat.getSeatCode() + " is blocked by another user");
             }
             if (!seat.getScreen().getId().equals(show.getScreen().getId())) {
                 throw new RuntimeException("Seat " + seat.getSeatCode() + " does not belong to the show's screen");
