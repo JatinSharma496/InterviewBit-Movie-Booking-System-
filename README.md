@@ -4,6 +4,14 @@ A full-stack web application similar to BookMyShow, built with React (Vite) fron
 
 > **Note**: This is an interview bit assignment project showcasing full-stack development skills with React and Spring Boot.
 
+## 🎥 Video Demo 
+
+Watch the application in action:
+
+[**📹 Cinema Booking System Demo Video**](https://drive.google.com/file/d/13-pRXOD3jso26mE5pMDLK2Q9E8oXlkJ9/view?usp=sharing)
+
+*Note: The video demonstrates the complete user flow from cinema selection to booking confirmation, showcasing the real-time seat selection and booking management features.*
+
 ## 🎬 Features
 
 ### Core Functionality
@@ -247,18 +255,18 @@ mvn test
 
 ## 🚀 Deployment
 
-### Frontend Deployment (Vercel)
+### Frontend Deployment
 ```bash
 cd frontendd
 npm run build
-# Deploy dist/ folder to Vercel
+# Deploy dist/ folder to your preferred hosting service (Vercel, Netlify, etc.)
 ```
 
-### Backend Deployment (Railway/Heroku)
+### Backend Deployment
 ```bash
 cd backend
 mvn clean package
-# Deploy target/cinema-booking-system-0.0.1-SNAPSHOT.jar
+# Deploy target/cinema-booking-system-0.0.1-SNAPSHOT.jar to your preferred hosting service
 ```
 
 ### Environment Variables
