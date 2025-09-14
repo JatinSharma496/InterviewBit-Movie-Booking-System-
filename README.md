@@ -8,7 +8,7 @@ A full-stack web application similar to BookMyShow, built with React (Vite) fron
 
 Watch the application in action:
 
-![Cinema Booking System Demo](./InterviewBit%20Cinema%20Booking%20System%20-%20Google%20Chrome%202025-09-15%2003-03-25.mp4)
+[**📹 Cinema Booking System Demo Video**](https://drive.google.com/file/d/13-pRXOD3jso26mE5pMDLK2Q9E8oXlkJ9/view?usp=sharing)
 
 *Note: The video demonstrates the complete user flow from cinema selection to booking confirmation, showcasing the real-time seat selection and booking management features.*
 
