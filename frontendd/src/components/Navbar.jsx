@@ -18,39 +18,50 @@ function Navbar() {
           <div className="flex items-center space-x-6">
             {state.currentUser ? (
               <>
-                <Link 
-                  to="/" 
-                  className={`flex items-center space-x-1 px-3 py-2 rounded transition-colors ${
-                    location.pathname === '/' ? 'bg-blue-700' : 'hover:bg-blue-700'
-                  }`}
-                >
-                  <FaHome />
-                  <span>Cinemas</span>
-                </Link>
+                {!state.isAdmin && (
+                  <>
+                    <Link 
+                      to="/" 
+                      className={`flex items-center space-x-1 px-3 py-2 rounded transition-colors ${
+                        location.pathname === '/' ? 'bg-blue-700' : 'hover:bg-blue-700'
+                      }`}
+                    >
+                      <FaHome />
+                      <span>Cinemas</span>
+                    </Link>
+                    
+                    <Link 
+                      to="/history" 
+                      className={`flex items-center space-x-1 px-3 py-2 rounded transition-colors ${
+                        location.pathname === '/history' ? 'bg-blue-700' : 'hover:bg-blue-700'
+                      }`}
+                    >
+                      <FaHistory />
+                      <span>My Bookings</span>
+                    </Link>
+                  </>
+                )}
                 
-                <Link 
-                  to="/history" 
-                  className={`flex items-center space-x-1 px-3 py-2 rounded transition-colors ${
-                    location.pathname === '/history' ? 'bg-blue-700' : 'hover:bg-blue-700'
-                  }`}
-                >
-                  <FaHistory />
-                  <span>My Bookings</span>
-                </Link>
+                {state.currentUser?.isAdmin && (
+                  <button
+                    onClick={toggleAdmin}
+                    className={`flex items-center space-x-1 px-3 py-2 rounded transition-colors ${
+                      state.isAdmin ? 'bg-red-600 hover:bg-red-700' : 'hover:bg-blue-700'
+                    }`}
+                  >
+                    <FaCog />
+                    <span>{state.isAdmin ? 'Exit Admin' : 'Admin'}</span>
+                  </button>
+                )}
                 
-                <button
-                  onClick={toggleAdmin}
-                  className={`flex items-center space-x-1 px-3 py-2 rounded transition-colors ${
-                    state.isAdmin ? 'bg-red-600 hover:bg-red-700' : 'hover:bg-blue-700'
-                  }`}
-                >
-                  <FaCog />
-                  <span>{state.isAdmin ? 'Exit Admin' : 'Admin'}</span>
-                </button>
-                
-                {state.isAdmin && (
+                {state.currentUser?.isAdmin && (
                   <Link 
                     to="/admin" 
+                    onClick={() => {
+                      if (!state.isAdmin) {
+                        toggleAdmin();
+                      }
+                    }}
                     className={`flex items-center space-x-1 px-3 py-2 rounded transition-colors ${
                       location.pathname === '/admin' ? 'bg-blue-700' : 'hover:bg-blue-700'
                     }`}
@@ -69,6 +80,17 @@ function Navbar() {
                     <FaSignOutAlt />
                     <span>Logout</span>
                   </button>
+                  {!state.isAdmin && (
+                    <Link 
+                      to="/history" 
+                      className={`flex items-center space-x-1 px-3 py-2 rounded transition-colors ${
+                        location.pathname === '/history' ? 'bg-blue-700' : 'hover:bg-blue-700'
+                      }`}
+                    >
+                      <FaHistory />
+                      <span>My Bookings</span>
+                    </Link>
+                  )}
                 </div>
               </>
             ) : (

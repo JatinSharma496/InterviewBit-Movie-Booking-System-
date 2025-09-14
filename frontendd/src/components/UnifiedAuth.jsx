@@ -52,7 +52,8 @@ function UnifiedAuth() {
             name: formData.name,
             email: formData.email,
             password: formData.password,
-            phoneNumber: formData.phoneNumber
+            phoneNumber: formData.phoneNumber,
+            isAdmin: userType === 'admin'
           };
 
       const response = await fetch(`http://localhost:8080${endpoint}`, {
@@ -80,7 +81,13 @@ function UnifiedAuth() {
         }
 
         dispatch({ type: 'SET_CURRENT_USER', payload: user });
-        navigate('/');
+        
+        // Redirect admin users to admin panel, regular users to home
+        if (user.isAdmin && userType === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
       } else {
         const errorText = isLogin ? 'Invalid email or password' : 'Signup failed. Email may already be in use.';
         setError(errorText);

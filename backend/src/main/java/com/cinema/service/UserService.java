@@ -46,7 +46,7 @@ public class UserService {
         user.setName(signupRequest.getName());
         user.setPassword(PasswordUtil.hashPassword(signupRequest.getPassword()));
         user.setPhoneNumber(signupRequest.getPhoneNumber());
-        user.setIsAdmin(false);
+        user.setIsAdmin(signupRequest.getIsAdmin() != null ? signupRequest.getIsAdmin() : false);
         
         User savedUser = userRepository.save(user);
         return convertToDto(savedUser);

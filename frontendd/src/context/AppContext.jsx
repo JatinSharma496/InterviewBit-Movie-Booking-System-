@@ -48,10 +48,14 @@ function appReducer(state, action) {
       return { ...state, bookings: updatedBookings };
     
     case 'TOGGLE_ADMIN':
-      return {
-        ...state,
-        isAdmin: !state.isAdmin
-      };
+      // Only allow admin toggle if user is actually an admin
+      if (state.currentUser?.isAdmin) {
+        return {
+          ...state,
+          isAdmin: !state.isAdmin
+        };
+      }
+      return state;
     
     case 'ADD_MOVIE': // This will need to be updated to use backend API
       const cinemaToUpdate = state.cinemas.find(c => c.id === action.cinemaId);

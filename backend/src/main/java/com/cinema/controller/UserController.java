@@ -75,4 +75,16 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
+    
+    @PutMapping("/{id}/promote-admin")
+    public ResponseEntity<UserDto> promoteToAdmin(@PathVariable Long id) {
+        try {
+            UserDto user = userService.getUserById(id);
+            user.setIsAdmin(true);
+            UserDto updatedUser = userService.updateUser(id, user);
+            return ResponseEntity.ok(updatedUser);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

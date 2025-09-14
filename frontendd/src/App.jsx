@@ -10,6 +10,7 @@ import BookingHistory from './components/BookingHistory';
 import AdminPanel from './components/AdminPanel';
 import UnifiedAuth from './components/UnifiedAuth';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminProtectedRoute from './components/AdminProtectedRoute';
 import './App.css';
 
 function AppContent() {
@@ -18,39 +19,43 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <Navbar />
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="min-h-screen">
-          <Routes>
-            <Route path="/" element={state.currentUser ? <MovieHome /> : <LandingPage />} />
-            <Route path="/auth" element={<UnifiedAuth />} />
-            <Route path="/movie/:movieId" element={
-              <ProtectedRoute>
-                <MovieDetail />
-              </ProtectedRoute>
-            } />
-            <Route path="/booking/:cinemaId/:movieId/:showtimeId" element={
-              <ProtectedRoute>
-                <SeatSelection />
-              </ProtectedRoute>
-            } />
-            <Route path="/confirmation/:bookingId" element={
-              <ProtectedRoute>
-                <BookingConfirmation />
-              </ProtectedRoute>
-            } />
-            <Route path="/history" element={
-              <ProtectedRoute>
-                <BookingHistory />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin" element={
-              <ProtectedRoute>
-                <AdminPanel />
-              </ProtectedRoute>
-            } />
-          </Routes>
-        </div>
-      </main>
+      <Routes>
+        <Route path="/admin" element={
+          <AdminProtectedRoute>
+            <AdminPanel />
+          </AdminProtectedRoute>
+        } />
+        <Route path="/*" element={
+          <main className="container mx-auto px-4 py-8 max-w-7xl">
+            <div className="min-h-screen">
+              <Routes>
+                <Route path="/" element={state.currentUser ? <MovieHome /> : <LandingPage />} />
+                <Route path="/auth" element={<UnifiedAuth />} />
+                <Route path="/movie/:movieId" element={
+                  <ProtectedRoute>
+                    <MovieDetail />
+                  </ProtectedRoute>
+                } />
+                <Route path="/booking/:cinemaId/:movieId/:showtimeId" element={
+                  <ProtectedRoute>
+                    <SeatSelection />
+                  </ProtectedRoute>
+                } />
+                <Route path="/confirmation/:bookingId" element={
+                  <ProtectedRoute>
+                    <BookingConfirmation />
+                  </ProtectedRoute>
+                } />
+                <Route path="/history" element={
+                  <ProtectedRoute>
+                    <BookingHistory />
+                  </ProtectedRoute>
+                } />
+              </Routes>
+            </div>
+          </main>
+        } />
+      </Routes>
     </div>
   );
 }
