@@ -2,8 +2,10 @@ package com.cinema.service;
 
 import com.cinema.dto.MovieDto;
 import com.cinema.dto.ShowDto;
+import com.cinema.entity.Cinema;
 import com.cinema.entity.Movie;
 import com.cinema.entity.Show;
+import com.cinema.repository.CinemaRepository;
 import com.cinema.repository.MovieRepository;
 import com.cinema.repository.ShowRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ public class MovieService {
 
     private final MovieRepository movieRepository;
     private final ShowRepository showRepository;
+    private final CinemaRepository cinemaRepository;
 
     public List<MovieDto> getAllMovies() {
         return movieRepository.findAll().stream()

@@ -1,12 +1,12 @@
 com\cinema\entity\Booking.class
 com\cinema\controller\SeatController.class
 com\cinema\service\SeatService.class
-com\cinema\controller\MovieController.class
 com\cinema\controller\CinemaController.class
 com\cinema\repository\CinemaRepository.class
 com\cinema\config\DataInitializer.class
 com\cinema\controller\HomeController.class
 com\cinema\service\ShowService.class
+com\cinema\controller\BookingController.class
 com\cinema\dto\BookingDto.class
 com\cinema\entity\Seat$SeatStatus.class
 com\cinema\entity\User.class
@@ -34,10 +34,10 @@ com\cinema\dto\UserDto.class
 com\cinema\entity\Booking$BookingStatus.class
 com\cinema\entity\Movie.class
 com\cinema\repository\MovieRepository.class
-com\cinema\service\MovieService.class
 com\cinema\service\UserService.class
 com\cinema\repository\ScreenRepository.class
 com\cinema\controller\ScreenController.class
 com\cinema\controller\UserController.class
 com\cinema\dto\CinemaDto.class
+com\cinema\service\BookingService.class
 com\cinema\dto\BookingRequest.class
