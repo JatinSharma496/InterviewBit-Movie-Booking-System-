@@ -2,6 +2,8 @@
 
 A full-stack web application similar to BookMyShow, built with React (Vite) frontend and Spring Boot backend. This project demonstrates modern web development practices with real-time features, comprehensive booking management, and admin functionality.
 
+> **Note**: This is an interview bit assignment project showcasing full-stack development skills with React and Spring Boot.
+
 ## 🎬 Features
 
 ### Core Functionality
@@ -14,10 +16,38 @@ A full-stack web application similar to BookMyShow, built with React (Vite) fron
 
 ### Advanced Features
 - ✅ **Real-time Concurrency**: Live seat blocking to prevent double bookings
-- ✅ **Admin Panel**: Complete admin interface for managing cinemas, movies, and shows
+- ⚠️ **Admin Panel**: Basic admin interface (has known bugs - see Issues section)
 - ✅ **Responsive Design**: Modern UI with Tailwind CSS
 - ✅ **WebSocket Integration**: Real-time updates for seat availability
 - ✅ **Data Persistence**: MySQL database with proper relationships
+
+## ⚠️ Known Issues & Limitations
+
+### Admin Area Bugs
+The admin panel has several known issues that could not be resolved within the time constraints:
+
+1. **Real-Time Concurrency Issues**:
+   - When a user selects a seat, it should be temporarily blocked and appear as "blocked" in real-time for other users
+   - Currently, seat blocking may not work consistently across multiple users
+
+2. **Admin Panel Functionality**:
+   - Admin interface for adding/editing/deleting Cinemas, Screens, and Movies has bugs
+   - Hover feature to view which user booked a specific seat is not working properly
+   - Admin panel UI may not display correctly in some scenarios
+
+3. **Authentication & Security**:
+   - Login authentication system is incomplete
+   - Admin access control needs proper implementation
+   - User session management requires additional work
+
+4. **Booking Cancellation**:
+   - End-user cancellation from transaction history has limited functionality
+   - Admin panel booking management needs refinement
+
+### Workarounds
+- Use the backend API directly for admin operations if needed
+- For testing, use the provided sample data
+- Most core booking functionality works as expected for regular users
 
 ## 🛠 Tech Stack
 
