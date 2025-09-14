@@ -12,7 +12,7 @@ function Navbar() {
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="flex items-center space-x-2">
             <FaHome className="text-2xl" />
-            <span className="text-xl font-bold">CinemaBook</span>
+            <span className="text-xl font-bold">InterviewBit-Movie-Booking-System</span>
           </Link>
           
           <div className="flex items-center space-x-6">
