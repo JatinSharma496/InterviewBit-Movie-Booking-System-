@@ -14,7 +14,7 @@
 
 <div align="center">
 
-[![Demo Video](https://img.shields.io/badge/📹_Watch_Demo-Video_Available-blue?style=for-the-badge&logo=youtube)](https://drive.google.com/file/d/13-pRXOD3jso26mE5pMDLK2Q9E8oXlkJ9/view?usp=sharing)
+[![Demo Video](https://img.shields.io/badge/📹_Watch_Demo-Video_Available-blue?style=for-the-badge&logo=youtube)](https://drive.google.com/file/d/1JALK1n8bAfS_11lutUEUfXPVhUTcBS-b/view?usp=sharing)
 
 *Complete user flow demonstration from cinema selection to booking confirmation*
 
