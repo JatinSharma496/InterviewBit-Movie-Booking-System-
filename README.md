@@ -1,83 +1,451 @@
-# Cinema Booking System
+# 🎬 Cinema Booking System
+### *A Modern Full-Stack Movie Booking Platform*
 
-A full-stack web application similar to BookMyShow, built with React (Vite) frontend and Spring Boot backend. This project demonstrates modern web development practices with real-time features, comprehensive booking management, and admin functionality.
+[![React](https://img.shields.io/badge/React-18.2.0-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://reactjs.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.0-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-3.3.0-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)  
 
-> **Note**: This is an interview bit assignment project showcasing full-stack development skills with React and Spring Boot.
+> **🎯   InterviewBit SDE Intern Assignment** - A full-stack web application similar to BookMyShow with real-time seat booking, admin panel, and comprehensive booking management.
 
-<<<<<<< HEAD
-## 🎥 Video Demo
-=======
-## 🎥 Video Demo 
->>>>>>> 5f64d9b0131c759cda424dff4153170582debf79
+---
 
-Watch the application in action:
+## 🎥 Live Demo
 
-[**📹 Cinema Booking System Demo Video**](https://drive.google.com/file/d/13-pRXOD3jso26mE5pMDLK2Q9E8oXlkJ9/view?usp=sharing)
+<div align="center">
 
-*Note: The video demonstrates the complete user flow from cinema selection to booking confirmation, showcasing the real-time seat selection and booking management features.*
+[![Demo Video](https://img.shields.io/badge/📹_Watch_Demo-Video_Available-blue?style=for-the-badge&logo=youtube)](https://drive.google.com/file/d/13-pRXOD3jso26mE5pMDLK2Q9E8oXlkJ9/view?usp=sharing)
 
-## 🎬 Features
+*Complete user flow demonstration from cinema selection to booking confirmation*
 
-### Core Functionality
-- ✅ **Cinema Listing**: Browse available cinemas with location details
-- ✅ **Movie & Showtimes**: View movies and their showtimes for each cinema
-- ✅ **Seat Selection**: Interactive seat map with real-time availability
-- ✅ **Booking System**: Complete booking flow with confirmation
-- ✅ **Booking History**: View and manage past bookings
-- ✅ **Booking Cancellation**: Cancel confirmed bookings
+</div>
 
-### Advanced Features
-- ✅ **Real-time Concurrency**: Live seat blocking to prevent double bookings
-- ⚠️ **Admin Panel**: Basic admin interface (has known bugs - see Issues section)
-- ✅ **Responsive Design**: Modern UI with Tailwind CSS
-- ✅ **WebSocket Integration**: Real-time updates for seat availability
-- ✅ **Data Persistence**: MySQL database with proper relationships
+---
 
-## ⚠️ Known Issues & Limitations
+## ✨ Implemented Features
 
-### Admin Area Bugs
-The admin panel has several known issues that could not be resolved within the time constraints:
+### 🎭 Core Functionality
+- **🎪 Cinema Browsing** - Browse multiple cinema locations with details
+- **🎬 Movie Selection** - View movies with showtimes, ratings, and descriptions
+- **🪑 Real-time Seat Selection** - Interactive seat map with live availability
+- **🎫 Booking System** - Complete booking flow with confirmation
+- **📱 Booking History** - View and manage past bookings
+- **👤 User Authentication** - Login system with admin privileges
+- **📱 Responsive Design** - Modern UI that works on all devices
 
-1. **Real-Time Concurrency Issues**:
-   - When a user selects a seat, it should be temporarily blocked and appear as "blocked" in real-time for other users
-   - Currently, seat blocking may not work consistently across multiple users
+### ⚡ Advanced Features
+- **🔄 Real-time Concurrency** - Live seat blocking to prevent double bookings
+- **🌐 WebSocket Integration** - Real-time updates across multiple users
+- **🗄️ Database Relationships** - Proper foreign key constraints and cascade deletes
+- **🛡️ Input Validation** - Validation on both frontend and backend
+- **🎨 Modern UI/UX** - Beautiful interface with Tailwind CSS
 
-2. **Admin Panel Functionality**:
-   - Admin interface for adding/editing/deleting Cinemas, Screens, and Movies has bugs
-   - Hover feature to view which user booked a specific seat is not working properly
-   - Admin panel UI may not display correctly in some scenarios
+---
 
-3. **Authentication & Security**:
-   - Login authentication system is incomplete
-   - Admin access control needs proper implementation
-   - User session management requires additional work
+## 🏗️ Architecture Overview
 
-4. **Booking Cancellation**:
-   - End-user cancellation from transaction history has limited functionality
-   - Admin panel booking management needs refinement
+```mermaid
+graph TB
+    subgraph "Frontend (React + Vite)"
+        A[User Interface] --> B[Context API]
+        B --> C[WebSocket Client]
+        C --> D[API Calls]
+    end
+    
+    subgraph "Backend (Spring Boot)"
+        D --> E[REST Controllers]
+        E --> F[Service Layer]
+        F --> G[Repository Layer]
+        G --> H[MySQL Database]
+        E --> I[WebSocket Handler]
+    end
+    
+    subgraph "Real-time Features"
+        I --> J[Seat Blocking]
+        J --> K[Live Updates]
+        K --> C
+    end
+    
+    style A fill:#61DAFB
+    style E fill:#6DB33F
+    style H fill:#4479A1
+    style I fill:#FF6B6B
+```
 
-### Workarounds
-- Use the backend API directly for admin operations if needed
-- For testing, use the provided sample data
-- Most core booking functionality works as expected for regular users
+---
 
-## 🛠 Tech Stack
+## 🗄️ Database Schema
 
-### Frontend
-- **React 19** with Vite
-- **Tailwind CSS** for styling
-- **React Router** for navigation
-- **React Icons** for UI icons
-- **Date-fns** for date manipulation
-- **Context API** for state management
+### Entity Relationship Diagram
 
-### Backend
-- **Spring Boot 3.2.0**
-- **Spring Data JPA** with Hibernate
-- **MySQL 8.0** database
-- **WebSocket** with STOMP for real-time features
-- **Maven** for dependency management
-- **Lombok** for reducing boilerplate code
+```mermaid
+erDiagram
+    USERS ||--o{ BOOKINGS : creates
+    CINEMAS ||--o{ SCREENS : contains
+    SCREENS ||--o{ SEATS : has
+    SCREENS ||--o{ SHOWS : hosts
+    MOVIES ||--o{ SHOWS : schedules
+    SHOWS ||--o{ BOOKINGS : generates
+    BOOKINGS ||--o{ SEATS : reserves
+    
+    USERS {
+        bigint id PK
+        string email UK
+        string name
+        string password
+        string phone_number
+        boolean is_admin
+    }
+    
+    CINEMAS {
+        bigint id PK
+        string name UK
+        string location
+        string contact_info
+    }
+    
+    SCREENS {
+        bigint id PK
+        bigint cinema_id FK
+        string name
+        int capacity
+        int total_rows
+        int seats_per_row
+    }
+    
+    MOVIES {
+        bigint id PK
+        string title UK
+        text description
+        string genre
+        string rating
+        int duration
+        date release_date
+        string poster_url
+        boolean is_active
+    }
+    
+    SHOWS {
+        bigint id PK
+        bigint movie_id FK
+        bigint screen_id FK
+        date date
+        time time
+        decimal ticket_price
+        boolean is_active
+    }
+    
+    SEATS {
+        bigint id PK
+        bigint screen_id FK
+        bigint booking_id FK
+        int seat_row
+        int seat_number
+        string seat_code
+        enum status
+        bigint blocked_by_user_id FK
+        timestamp blocked_until
+    }
+    
+    BOOKINGS {
+        bigint id PK
+        bigint user_id FK
+        bigint show_id FK
+        decimal total_amount
+        enum status
+    }
+```
+
+### Cascade Delete Implementation
+- **Cinema deletion** → Cascades to Screens → Cascades to Seats and Shows
+- **Movie deletion** → Cascades to Shows → Cascades to Bookings
+- **User deletion** → Cascades to Bookings
+- **Booking deletion** → Cascades to Seat status updates
+- **Show deletion** → Cascades to Bookings
+
+### Unique Constraints
+- `(screen_id, date, time)` - Prevents double booking of same screen
+- `email` - Ensures unique user accounts
+- `seat_code` - Unique seat identification per screen
+
+---
+
+## 🚀 Tech Stack
+
+### Frontend Technologies
+<table>
+<tr>
+<td><strong>React 18</strong></td>
+<td>Modern UI library with hooks and context API</td>
+</tr>
+<tr>
+<td><strong>Vite</strong></td>
+<td>Fast build tool and development server</td>
+</tr>
+<tr>
+<td><strong>Tailwind CSS</strong></td>
+<td>Utility-first CSS framework for styling</td>
+</tr>
+<tr>
+<td><strong>React Router</strong></td>
+<td>Client-side routing and navigation</td>
+</tr>
+<tr>
+<td><strong>WebSocket</strong></td>
+<td>Real-time bidirectional communication</td>
+</tr>
+</table>
+
+### Backend Technologies
+<table>
+<tr>
+<td><strong>Spring Boot 3.2.0</strong></td>
+<td>Enterprise-grade Java framework</td>
+</tr>
+<tr>
+<td><strong>Spring Data JPA</strong></td>
+<td>Data persistence with Hibernate ORM</td>
+</tr>
+<tr>
+<td><strong>MySQL 8.0</strong></td>
+<td>Relational database management system</td>
+</tr>
+<tr>
+<td><strong>WebSocket + STOMP</strong></td>
+<td>Real-time messaging protocol</td>
+</tr>
+<tr>
+<td><strong>Maven</strong></td>
+<td>Dependency management and build automation</td>
+</tr>
+<tr>
+<td><strong>Lombok</strong></td>
+<td>Reduces boilerplate code with annotations</td>
+</tr>
+</table>
+
+---
+
+## 🎯 User Flow
+
+### Customer Journey
+```mermaid
+flowchart TD
+    A[🏠 Home Page] --> B[🎪 Select Cinema]
+    B --> C[🎬 Choose Movie]
+    C --> D[⏰ Pick Showtime]
+    D --> E[🪑 Select Seats]
+    E --> F[💰 Review Booking]
+    F --> G[✅ Confirm Booking]
+    G --> H[🎫 Booking Confirmation]
+    H --> I[📱 View Booking History]
+    
+    style A fill:#E3F2FD
+    style H fill:#C8E6C9
+    style I fill:#FFF3E0
+```
+
+### Admin Workflow
+```mermaid
+flowchart TD
+    A[🔐 Admin Login] --> B[📊 Dashboard]
+    B --> C{Choose Action}
+    C -->|Cinemas| D[🏢 Manage Cinemas]
+    C -->|Movies| E[🎬 Manage Movies]
+    C -->|Shows| F[⏰ Manage Shows]
+    C -->|Bookings| G[🎫 View Bookings]
+    
+    D --> H[➕ Add/Edit/Delete]
+    E --> H
+    F --> H
+    G --> I[📈 View Analytics]
+    
+    style A fill:#FFCDD2
+    style B fill:#F8BBD9
+    style H fill:#C8E6C9
+```
+
+---
+
+## 🛠️ Installation & Setup
+
+### Prerequisites
+- **Node.js 18+** and npm
+- **Java 17+**
+- **Maven 3.6+**
+- **MySQL 8.0+**
+
+### Quick Start
+
+#### 1. Clone Repository
+```bash
+git clone https://github.com/JatinSharma496/InterviewBit-Movie-Booking-System-.git
+cd InterviewBit-Movie-Booking-System-
+```
+
+#### 2. Database Setup
+```bash
+# Create MySQL database
+mysql -u root -p
+CREATE DATABASE cinema_booking;
+```
+
+#### 3. Backend Setup
+```bash
+cd backend
+
+# Update database credentials in src/main/resources/application.yml
+# Default: username: root, password: password
+
+# Run the backend
+mvn spring-boot:run
+```
+**Backend runs on:** `http://localhost:8080`
+
+#### 4. Frontend Setup
+```bash
+cd frontendd
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+**Frontend runs on:** `http://localhost:5173`
+
+### Sample Data
+The application automatically creates sample data on first startup:
+
+| Entity | Count | Details |
+|--------|-------|---------|
+| **Users** | 2 | Admin + Regular user |
+| **Cinemas** | 3 | PVR, INOX, Cinepolis locations |
+| **Screens** | 6 | Multiple screens per cinema |
+| **Movies** | 4 | War 2, Param Sundari, Fantastic Four, Thunderbolts |
+| **Shows** | 16 | Multiple showtimes across screens |
+| **Seats** | 600+ | Complete seat layouts for all screens |
+
+---
+
+## 🔧 API Endpoints
+
+### Cinema Management
+```http
+GET    /api/cinemas                    # List all cinemas
+GET    /api/cinemas/{id}              # Get cinema by ID
+POST   /api/cinemas                   # Create new cinema (Admin)
+PUT    /api/cinemas/{id}              # Update cinema (Admin)
+DELETE /api/cinemas/{id}              # Delete cinema (Admin)
+```
+
+### Movie Management
+```http
+GET    /api/movies                    # List all movies
+GET    /api/movies/{id}               # Get movie by ID
+POST   /api/movies                    # Create new movie (Admin)
+PUT    /api/movies/{id}               # Update movie (Admin)
+DELETE /api/movies/{id}               # Delete movie (Admin)
+```
+
+### Show Management
+```http
+GET    /api/shows                     # List all shows
+GET    /api/shows/{id}                # Get show by ID
+GET    /api/shows/movie/{movieId}     # Get shows by movie
+POST   /api/shows                     # Create new show (Admin)
+PUT    /api/shows/{id}                # Update show (Admin)
+DELETE /api/shows/{id}                # Delete show (Admin)
+```
+
+### Booking Management
+```http
+GET    /api/bookings                  # List all bookings (Admin)
+GET    /api/bookings/{id}             # Get booking by ID
+GET    /api/bookings/user/{userId}    # Get user bookings
+POST   /api/bookings                  # Create new booking
+PUT    /api/bookings/{id}/cancel      # Cancel booking
+```
+
+### Seat Management
+```http
+GET    /api/seats/screen/{screenId}   # Get seats by screen
+POST   /api/seats/block               # Block seats temporarily
+POST   /api/seats/unblock             # Unblock seats
+```
+
+### WebSocket Endpoints
+```http
+ws://localhost:8080/ws                # WebSocket connection
+/topic/seats                          # Subscribe to seat updates
+/app/seats/block                      # Block seats via WebSocket
+/app/seats/unblock                    # Unblock seats via WebSocket
+```
+
+---
+
+## 🎨 UI/UX Features
+
+### Seat Selection Interface
+| Status | Color | Description |
+|--------|-------|-------------|
+| **Available** | 🔘 Gray | Ready for selection |
+| **Selected** | 🟢 Green | Chosen by current user |
+| **Blocked** | 🟡 Yellow | Temporarily blocked by another user |
+| **Booked** | 🔴 Red | Already confirmed and paid |
+
+### Interactive Features
+- **Real-time Updates**: Live seat availability changes
+- **Maximum Selection**: 6 seats per booking limit
+- **Visual Feedback**: Loading states and success messages
+- **Error Handling**: User-friendly error popups
+
+---
+
+## 🔒 Security & Validation
+
+### Backend Security
+- **Input Validation**: Jakarta Validation annotations
+- **CORS Configuration**: Secure cross-origin requests
+- **SQL Injection Prevention**: JPA parameterized queries
+- **Error Handling**: Proper HTTP status codes
+
+### Data Integrity
+- **Foreign Key Constraints**: Referential integrity
+- **Transaction Management**: ACID compliance
+- **Seat Concurrency Control**: Prevents double booking
+- **Automatic Cleanup**: Expired seat blocks removal
+
+---
+
+## 📊 Real-time Features
+
+### WebSocket Implementation
+- **Seat Blocking**: 5-minute timeout with automatic cleanup
+- **Live Updates**: Real-time seat availability across users
+- **Concurrency Control**: Prevents double booking
+- **Efficient Communication**: STOMP protocol for messaging
+
+### Frontend Optimization
+- **Component Architecture**: Reusable and maintainable code
+- **Context API**: Efficient state management
+- **Responsive Design**: Works on all device sizes
+- **Smooth Animations**: CSS transitions and hover effects
+
+---
+
+## 🧪 Testing
+
+### Manual Testing
+- [ ] User registration and login
+- [ ] Cinema browsing and selection
+- [ ] Movie and showtime selection
+- [ ] Real-time seat selection
+- [ ] Booking confirmation
+- [ ] Booking history and cancellation
+- [ ] Admin panel functionality
+
+---
 
 ## 📁 Project Structure
 
@@ -102,208 +470,3 @@ cinema-booking-system/
 │   └── README.md
 └── README.md                  # This file
 ```
-
-## 🚀 Quick Start
-
-### Prerequisites
-- **Node.js 18+** and npm
-- **Java 17+**
-- **Maven 3.6+**
-- **MySQL 8.0+**
-
-### 1. Clone the Repository
-```bash
-git clone <repository-url>
-cd cinema-booking-system
-```
-
-### 2. Backend Setup
-```bash
-cd backend
-
-# Create MySQL database
-mysql -u root -p
-CREATE DATABASE cinema_booking;
-
-# Update database credentials in src/main/resources/application.yml if needed
-
-# Run the backend
-mvn spring-boot:run
-```
-Backend will start on `http://localhost:8080`
-
-### 3. Frontend Setup
-```bash
-cd frontendd
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-```
-Frontend will start on `http://localhost:5173`
-
-### 4. Access the Application
-- **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:8080/api
-- **WebSocket**: ws://localhost:8080/ws
-
-## 📊 Database Schema
-
-### Key Entities
-- **Users**: User accounts with admin privileges
-- **Cinemas**: Movie theater locations
-- **Screens**: Individual theaters within cinemas
-- **Movies**: Film information and metadata
-- **Shows**: Specific showtimes for movies
-- **Seats**: Individual seats with status tracking
-- **Bookings**: User reservations with seat assignments
-
-### Sample Data
-The application automatically creates sample data:
-- 2 cinemas with multiple screens
-- 3 popular movies with various showtimes
-- 2 users (admin and regular user)
-- Complete seat layouts for all screens
-
-## 🎯 User Flows
-
-### Customer Journey
-1. **Browse Cinemas** → Select a cinema location
-2. **Choose Movie** → View available movies and showtimes
-3. **Select Seats** → Interactive seat map with real-time availability
-4. **Confirm Booking** → Complete payment and receive confirmation
-5. **Manage Bookings** → View history and cancel if needed
-
-### Admin Features
-1. **Manage Cinemas** → Add/edit cinema locations
-2. **Manage Movies** → Add/edit movies and showtimes
-3. **View Analytics** → Booking statistics and revenue
-4. **Seat Management** → Monitor seat availability and bookings
-
-## 🔧 API Documentation
-
-### Core Endpoints
-- `GET /api/cinemas` - List all cinemas
-- `GET /api/cinemas/{id}/movies` - Get movies by cinema
-- `POST /api/bookings` - Create new booking
-- `GET /api/bookings/user/{userId}` - Get user bookings
-- `PUT /api/bookings/{id}/cancel` - Cancel booking
-
-### Real-time Features
-- WebSocket endpoint: `/ws`
-- Seat updates: `/topic/seats`
-- Block seats: `/app/seats/block`
-
-## 🎨 UI/UX Features
-
-### Modern Design
-- **Responsive Layout**: Works on desktop, tablet, and mobile
-- **Interactive Components**: Smooth animations and transitions
-- **Intuitive Navigation**: Clear user flow and breadcrumbs
-- **Visual Feedback**: Loading states and success messages
-
-### Seat Selection
-- **Visual Seat Map**: Grid layout showing seat availability
-- **Real-time Updates**: Live seat blocking and availability
-- **Color Coding**: Available (gray), Selected (green), Blocked (yellow), Booked (red)
-- **Maximum Selection**: Limit of 6 seats per booking
-
-## 🔒 Security & Validation
-
-### Backend Security
-- Input validation with Jakarta Validation
-- CORS configuration for frontend integration
-- Proper error handling and status codes
-- SQL injection prevention with JPA
-
-### Data Integrity
-- Foreign key constraints
-- Transaction management
-- Seat concurrency control
-- Automatic cleanup of expired blocks
-
-## 🧪 Testing
-
-### Frontend Testing
-```bash
-cd frontendd
-npm test
-```
-
-### Backend Testing
-```bash
-cd backend
-mvn test
-```
-
-### Manual Testing
-- Use the provided sample data for testing
-- Test all user flows from cinema selection to booking confirmation
-- Verify real-time seat blocking functionality
-- Test admin panel features
-
-## 📈 Performance Features
-
-### Real-time Updates
-- WebSocket integration for live seat updates
-- Automatic cleanup of expired seat blocks
-- Efficient database queries with proper indexing
-
-### Frontend Optimization
-- Component-based architecture
-- Context API for efficient state management
-- Lazy loading and code splitting
-- Responsive images and assets
-
-## 🚀 Deployment
-
-### Frontend Deployment
-```bash
-cd frontendd
-npm run build
-# Deploy dist/ folder to your preferred hosting service (Vercel, Netlify, etc.)
-```
-
-### Backend Deployment
-```bash
-cd backend
-mvn clean package
-# Deploy target/cinema-booking-system-0.0.1-SNAPSHOT.jar to your preferred hosting service
-```
-
-### Environment Variables
-- Database connection strings
-- CORS allowed origins
-- WebSocket configuration
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Spring Boot team for the excellent framework
-- React team for the powerful frontend library
-- Tailwind CSS for the utility-first CSS framework
-- MySQL team for the reliable database system
-
-## 📞 Support
-
-For support and questions:
-- Create an issue in the repository
-- Check the individual README files in frontend and backend directories
-- Review the API documentation
-
----
-
-**Note**: This is a demonstration project showcasing modern full-stack development practices. For production use, consider implementing additional security measures, payment integration, and comprehensive testing.
