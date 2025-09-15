@@ -4,7 +4,11 @@ A full-stack web application similar to BookMyShow, built with React (Vite) fron
 
 > **Note**: This is an interview bit assignment project showcasing full-stack development skills with React and Spring Boot.
 
+<<<<<<< HEAD
 ## 🎥 Video Demo
+=======
+## 🎥 Video Demo 
+>>>>>>> 5f64d9b0131c759cda424dff4153170582debf79
 
 Watch the application in action:
 
