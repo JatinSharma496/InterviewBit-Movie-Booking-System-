@@ -135,19 +135,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     // ----------------- HELPERS -----------------
-
-    private User createUserIfNotExists(String email, String name, String phone, boolean isAdmin) {
-        return userRepository.findByEmail(email).orElseGet(() -> {
-            User u = new User();
-            u.setEmail(email);
-            u.setName(name);
-            u.setPassword(PasswordUtil.hashPassword("123456")); // Default password for demo users
-            u.setPhoneNumber(phone);
-            u.setIsAdmin(isAdmin);
-            return userRepository.save(u);
-        });
-    }
-
+    
     private Cinema createCinemaIfNotExists(String name, String location, String contact) {
         return cinemaRepository.findByName(name).orElseGet(() -> {
             Cinema c = new Cinema();
