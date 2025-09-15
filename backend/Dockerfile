@@ -5,8 +5,8 @@ FROM openjdk:17-jdk-slim
 WORKDIR /app
 
 # Copy Maven files
-COPY backend/pom.xml .
-COPY backend/src ./src
+COPY pom.xml .
+COPY src ./src
 
 # Install Maven and wget
 RUN apt-get update && apt-get install -y maven wget && rm -rf /var/lib/apt/lists/*
