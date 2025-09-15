@@ -117,11 +117,6 @@ function Login() {
             </button>
           </div>
 
-          <div className="text-center">
-            <p className="text-sm text-gray-600">
-              Demo credentials: admin@cinema.com / password123
-            </p>
-          </div>
         </form>
       </div>
     </div>

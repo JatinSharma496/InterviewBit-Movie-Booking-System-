@@ -30,6 +30,4 @@ public class Cinema {
     @OneToMany(mappedBy = "cinema", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Screen> screens;
     
-    @OneToMany(mappedBy = "cinema", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Movie> movies;
 }

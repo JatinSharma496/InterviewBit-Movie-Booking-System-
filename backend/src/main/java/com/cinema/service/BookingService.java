@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -108,8 +107,13 @@ public class BookingService {
         }
         seatRepository.saveAll(booking.getSeats());
         
-        Booking savedBooking = bookingRepository.save(booking);
-        return convertToDto(savedBooking);
+        bookingRepository.save(booking);
+        
+        // Refresh the booking with all relationships to avoid lazy loading issues
+        Booking refreshedBooking = bookingRepository.findByIdWithDetails(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found after cancellation"));
+        
+        return convertToDto(refreshedBooking);
     }
     
     public List<BookingDto> getAllBookings() {

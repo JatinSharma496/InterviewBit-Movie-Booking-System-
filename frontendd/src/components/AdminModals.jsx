@@ -115,20 +115,7 @@ export function MovieModal({ show, onClose, onSubmit, data, setData, cinemas, is
               </div>
             </div>
 
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Cinema</label>
-              <select
-                value={data.cinema_id || ''}
-                onChange={(e) => setData({...data, cinema_id: parseInt(e.target.value)})}
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                required
-              >
-                <option value="">Select Cinema</option>
-                {cinemas.map(cinema => (
-                  <option key={cinema.id} value={cinema.id}>{cinema.name}</option>
-                ))}
-              </select>
-            </div>
+            {/* Cinema selection removed - movies are now independent */}
           </div>
 
           <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
@@ -362,14 +349,13 @@ export function ShowModal({ show, onClose, onSubmit, data, setData, movies, scre
     onSubmit();
   };
 
-  // Filter screens and movies based on selected cinema
+  // Filter screens based on selected cinema
   const filteredScreens = data?.cinema_id ? 
     screens.filter(screen => screen.cinema_id === parseInt(data.cinema_id)) : 
     screens;
     
-  const filteredMovies = data?.cinema_id ? 
-    movies.filter(movie => movie.cinema_id === parseInt(data.cinema_id)) : 
-    movies;
+  // Movies are now independent - show all movies regardless of cinema
+  const filteredMovies = movies;
 
   // Get selected movie for release date validation
   const selectedMovie = filteredMovies.find(movie => movie.id === parseInt(data?.movie_id));
@@ -424,17 +410,12 @@ export function ShowModal({ show, onClose, onSubmit, data, setData, movies, scre
               onChange={(e) => setData({...data, movie_id: parseInt(e.target.value)})}
               className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               required
-              disabled={!data?.cinema_id}
             >
-              <option value="">
-                {!data?.cinema_id ? 'Select Cinema first' : 'Select Movie'}
-              </option>
+              <option value="">Select Movie</option>
               {filteredMovies && filteredMovies.length > 0 ? filteredMovies.map(movie => (
                 <option key={movie.id} value={movie.id}>{movie.title}</option>
               )) : (
-                <option value="" disabled>
-                  {!data?.cinema_id ? 'Select a cinema first' : 'No movies available for this cinema'}
-                </option>
+                <option value="" disabled>No movies available</option>
               )}
             </select>
           </div>

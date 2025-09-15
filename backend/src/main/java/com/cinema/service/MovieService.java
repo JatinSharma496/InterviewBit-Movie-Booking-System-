@@ -2,10 +2,8 @@ package com.cinema.service;
 
 import com.cinema.dto.MovieDto;
 import com.cinema.dto.ShowDto;
-import com.cinema.entity.Cinema;
 import com.cinema.entity.Movie;
 import com.cinema.entity.Show;
-import com.cinema.repository.CinemaRepository;
 import com.cinema.repository.MovieRepository;
 import com.cinema.repository.ShowRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +20,6 @@ public class MovieService {
 
     private final MovieRepository movieRepository;
     private final ShowRepository showRepository;
-    private final CinemaRepository cinemaRepository;
     private final ShowService showService;
 
     public List<MovieDto> getAllMovies() {
@@ -55,12 +52,6 @@ public class MovieService {
         movie.setPosterUrl(movieDto.getPosterUrl());
         movie.setIsActive(movieDto.getIsActive());
         
-        // Set cinema if provided
-        if (movieDto.getCinemaId() != null) {
-            Cinema cinema = cinemaRepository.findById(movieDto.getCinemaId())
-                    .orElseThrow(() -> new RuntimeException("Cinema not found with id: " + movieDto.getCinemaId()));
-            movie.setCinema(cinema);
-        }
         
         Movie savedMovie = movieRepository.save(movie);
         return convertMovieToDto(savedMovie);
@@ -80,12 +71,6 @@ public class MovieService {
         movie.setPosterUrl(movieDto.getPosterUrl());
         movie.setIsActive(movieDto.getIsActive());
         
-        // Update cinema if provided
-        if (movieDto.getCinemaId() != null) {
-            Cinema cinema = cinemaRepository.findById(movieDto.getCinemaId())
-                    .orElseThrow(() -> new RuntimeException("Cinema not found with id: " + movieDto.getCinemaId()));
-            movie.setCinema(cinema);
-        }
 
         Movie updatedMovie = movieRepository.save(movie);
         return convertMovieToDto(updatedMovie);
@@ -99,18 +84,6 @@ public class MovieService {
         movieRepository.deleteById(id);
     }
 
-    @Transactional
-    public MovieDto assignMovieToCinema(Long movieId, Long cinemaId) {
-        Movie movie = movieRepository.findById(movieId)
-                .orElseThrow(() -> new RuntimeException("Movie not found with id: " + movieId));
-        
-        Cinema cinema = cinemaRepository.findById(cinemaId)
-                .orElseThrow(() -> new RuntimeException("Cinema not found with id: " + cinemaId));
-        
-        movie.setCinema(cinema);
-        Movie updatedMovie = movieRepository.save(movie);
-        return convertMovieToDto(updatedMovie);
-    }
 
     private MovieDto convertMovieToDto(Movie movie) {
         MovieDto dto = new MovieDto();
@@ -124,11 +97,6 @@ public class MovieService {
         dto.setPosterUrl(movie.getPosterUrl());
         dto.setIsActive(movie.getIsActive());
         
-        // Set cinema information if available
-        if (movie.getCinema() != null) {
-            dto.setCinemaId(movie.getCinema().getId());
-            dto.setCinemaName(movie.getCinema().getName());
-        }
         
         return dto;
     }

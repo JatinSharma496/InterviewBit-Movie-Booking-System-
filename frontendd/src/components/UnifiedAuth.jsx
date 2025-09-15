@@ -289,15 +289,6 @@ function UnifiedAuth() {
             </button>
           </div>
 
-          {isLogin && (
-            <div className="text-center">
-              <p className="text-sm text-gray-600">
-                Demo credentials:<br/>
-                <strong>User:</strong> john@example.com / password123<br/>
-                <strong>Admin:</strong> admin@cinema.com / password123
-              </p>
-            </div>
-          )}
         </form>
       </div>
     </div>

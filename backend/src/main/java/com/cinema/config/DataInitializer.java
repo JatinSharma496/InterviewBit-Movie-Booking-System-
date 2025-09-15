@@ -32,8 +32,8 @@ public class DataInitializer implements CommandLineRunner {
         userRepository.findAll().forEach(user -> {
             if (user.getPassword() != null && !user.getPassword().contains("=")) {
                 // If password doesn't contain '=' it's likely plain text (Base64 contains '=')
-                if (user.getPassword().equals("password123")) {
-                    user.setPassword(PasswordUtil.hashPassword("password123"));
+                if (user.getPassword().equals("123456")) {
+                    user.setPassword(PasswordUtil.hashPassword("123456"));
                     userRepository.save(user);
                     System.out.println("Migrated password for user: " + user.getEmail());
                 }
@@ -46,9 +46,6 @@ public class DataInitializer implements CommandLineRunner {
         
         
         // ✅ Users
-        User admin = createUserIfNotExists("admin@cinema.com", "Admin User", "1234567890", true);
-        User user1 = createUserIfNotExists("john@example.com", "John Doe", "9876543210", false);
-        System.out.println("Users created: " + admin.getEmail() + ", " + user1.getEmail());
 
         // ✅ Cinemas - Indian Cinema Names
         Cinema cinema1 = createCinemaIfNotExists("PVR Cinemas - Phoenix MarketCity", "Phoenix MarketCity, Whitefield, Bangalore", "+91-80-1234-5678");
@@ -70,36 +67,18 @@ public class DataInitializer implements CommandLineRunner {
                 "The sixth entry in Yash Raj Films' Spy Universe, featuring Hrithik Roshan and Jr. NTR in an action-packed thriller.",
                 "Action, Thriller, Spy", "UA", 150,
                 LocalDate.of(2025, 8, 14),
-                "https://image.tmdb.org/t/p/w500/1Lh9LER4xRQ3INFFi2dfbn2x1ne.jpg",
-                cinema1
+                "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTFVy-D121jsb-Q6Uc11E_Q0Dp4C7UI88miYw&s"
         );
         System.out.println("Movie 1 created: " + movie1.getTitle());
 
-        Movie movie2 = createMovieIfNotExists(
-                "De De Pyaar De 2",
-                "Sequel to the romantic comedy featuring Ajay Devgn, R. Madhavan, and Rakul Preet Singh in another hilarious love triangle.",
-                "Romance, Comedy, Drama", "UA", 140,
-                LocalDate.of(2025, 7, 4),
-                "https://image.tmdb.org/t/p/w500/2vFuG6bWGyQzJJzbshWZ3d5vUKH.jpg",
-                cinema1
-        );
-
-        Movie movie3 = createMovieIfNotExists(
-                "The Delhi Files",
-                "A historical drama by Vivek Ranjan Agnihotri exploring significant moments in Indian history and the events leading to India's partition.",
-                "Historical, Drama, Crime", "UA", 160,
-                LocalDate.of(2025, 8, 15),
-                "https://image.tmdb.org/t/p/w500/3gFuG6bWGyQzJJzbshWZ3d5vUKH.jpg",
-                cinema2
-        );
+        
 
         Movie movie4 = createMovieIfNotExists(
                 "Param Sundari",
                 "A romantic drama starring Janhvi Kapoor and Sidharth Malhotra, exploring the complexities of love and relationships.",
                 "Romance, Drama", "UA", 130,
                 LocalDate.of(2025, 7, 25),
-                "https://image.tmdb.org/t/p/w500/4hFuG6bWGyQzJJzbshWZ3d5vUKH.jpg",
-                cinema2
+                "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS9UYyX_ewY6iKRXDL_qzuwJM4wYC8i_3Z6Rg&s"
         );
 
         // English Movies
@@ -108,8 +87,7 @@ public class DataInitializer implements CommandLineRunner {
                 "Marvel's first family returns in this highly anticipated reboot featuring the iconic superhero team in a new adventure.",
                 "Action, Adventure, Sci-Fi", "PG-13", 135,
                 LocalDate.of(2025, 7, 25),
-                "https://image.tmdb.org/t/p/w500/5iFuG6bWGyQzJJzbshWZ3d5vUKH.jpg",
-                cinema3
+                "https://m.media-amazon.com/images/M/MV5BOGM5MzA3MDAtYmEwMi00ZDNiLTg4MDgtMTZjOTc0ZGMyNTIwXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg"
         );
 
         Movie movie6 = createMovieIfNotExists(
@@ -117,8 +95,7 @@ public class DataInitializer implements CommandLineRunner {
                 "Marvel's anti-hero team assembles in this action-packed adventure featuring some of the most complex characters in the MCU.",
                 "Action, Adventure, Sci-Fi", "PG-13", 145,
                 LocalDate.of(2025, 8, 1),
-                "https://image.tmdb.org/t/p/w500/6jFuG6bWGyQzJJzbshWZ3d5vUKH.jpg",
-                cinema3
+                "https://m.media-amazon.com/images/M/MV5BYWE2NmNmYTItZGY0ZC00MmY2LTk1NDAtMGUyMGEzMjcxNWM0XkEyXkFqcGc@._V1_.jpg"
         );
 
         // ✅ Shows - Multiple shows for each movie across different cinemas
@@ -128,17 +105,7 @@ public class DataInitializer implements CommandLineRunner {
         createShowIfNotExists(movie1, screen2, LocalDate.now().plusDays(1), LocalTime.of(19, 0), 350.0);
         createShowIfNotExists(movie1, screen1, LocalDate.now().plusDays(2), LocalTime.of(11, 0), 350.0);
 
-        // De De Pyaar De 2 shows
-        createShowIfNotExists(movie2, screen2, LocalDate.now().plusDays(1), LocalTime.of(11, 0), 250.0);
-        createShowIfNotExists(movie2, screen1, LocalDate.now().plusDays(1), LocalTime.of(15, 30), 250.0);
-        createShowIfNotExists(movie2, screen2, LocalDate.now().plusDays(1), LocalTime.of(20, 0), 250.0);
-        createShowIfNotExists(movie2, screen1, LocalDate.now().plusDays(2), LocalTime.of(12, 0), 250.0);
-
-        // The Delhi Files shows
-        createShowIfNotExists(movie3, screen3, LocalDate.now().plusDays(1), LocalTime.of(12, 0), 300.0);
-        createShowIfNotExists(movie3, screen3, LocalDate.now().plusDays(1), LocalTime.of(16, 0), 300.0);
-        createShowIfNotExists(movie3, screen4, LocalDate.now().plusDays(1), LocalTime.of(20, 30), 300.0);
-        createShowIfNotExists(movie3, screen3, LocalDate.now().plusDays(2), LocalTime.of(13, 0), 300.0);
+       
 
         // Param Sundari shows
         createShowIfNotExists(movie4, screen4, LocalDate.now().plusDays(1), LocalTime.of(10, 30), 200.0);
@@ -174,7 +141,7 @@ public class DataInitializer implements CommandLineRunner {
             User u = new User();
             u.setEmail(email);
             u.setName(name);
-            u.setPassword(PasswordUtil.hashPassword("password123")); // Default password for demo users
+            u.setPassword(PasswordUtil.hashPassword("123456")); // Default password for demo users
             u.setPhoneNumber(phone);
             u.setIsAdmin(isAdmin);
             return userRepository.save(u);
@@ -204,7 +171,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private Movie createMovieIfNotExists(String title, String desc, String genre, String rating,
-                                         int duration, LocalDate release, String posterUrl, Cinema cinema) {
+                                         int duration, LocalDate release, String posterUrl) {
         return movieRepository.findByTitle(title).orElseGet(() -> {
             Movie m = new Movie();
             m.setTitle(title);
@@ -215,7 +182,7 @@ public class DataInitializer implements CommandLineRunner {
             m.setReleaseDate(release);
             m.setPosterUrl(posterUrl);
             m.setIsActive(true);
-            m.setCinema(cinema);
+            // Movies are now independent - no cinema assignment needed
             return movieRepository.save(m);
         });
     }

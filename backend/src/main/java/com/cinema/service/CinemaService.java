@@ -23,21 +23,22 @@ public class CinemaService {
     private final ShowService showService;
     
     public List<CinemaDto> getAllCinemas() {
-        return cinemaRepository.findAllWithScreensAndMovies().stream()
+        return cinemaRepository.findAllWithScreens().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
     
     public CinemaDto getCinemaById(Long id) {
-        Cinema cinema = cinemaRepository.findByIdWithScreensAndMovies(id)
+        Cinema cinema = cinemaRepository.findByIdWithScreens(id)
                 .orElseThrow(() -> new RuntimeException("Cinema not found with id: " + id));
         return convertToDto(cinema);
     }
     
     public List<MovieDto> getMoviesByCinemaId(Long cinemaId) {
-        // Movies are not directly associated with cinemas in this model
-        // This method would need to be implemented differently based on business requirements
-        return List.of();
+        // Get movies that have shows in screens belonging to this cinema
+        return movieRepository.findMoviesByCinemaId(cinemaId).stream()
+                .map(this::convertMovieToDto)
+                .collect(Collectors.toList());
     }
 
     @Transactional

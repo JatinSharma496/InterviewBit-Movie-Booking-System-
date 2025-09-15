@@ -43,9 +43,6 @@ public class Movie {
     @Column(name = "is_active")
     private Boolean isActive = true;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cinema_id", nullable = false)
-    private Cinema cinema;
     
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Show> shows;

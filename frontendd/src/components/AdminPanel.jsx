@@ -41,8 +41,7 @@ function AdminPanel() {
     duration: '',
     release_date: '',
     poster_url: 'https://via.placeholder.com/300x450/6366f1/FFFFFF?text=New+Movie',
-    is_active: true,
-    cinema_id: ''
+    is_active: true
   });
 
   const [newCinema, setNewCinema] = useState({
@@ -62,11 +61,11 @@ function AdminPanel() {
   const [newShow, setNewShow] = useState({
     date: '',
     time: '',
-    ticket_price: 15.0,
-    is_active: true,
-    movie_id: '',
-    screen_id: '',
-    cinema_id: ''
+    ticketPrice: 15.0,
+    isActive: true,
+    movieId: '',
+    screenId: '',
+    cinemaId: ''
   });
 
   const [editingItem, setEditingItem] = useState(null);
@@ -171,7 +170,7 @@ function AdminPanel() {
     await handleAdd('movies', newMovie, setMovies, () => {
       setNewMovie({
         title: '', description: '', genre: '', rating: 'PG-13', duration: '', release_date: '',
-        poster_url: 'https://via.placeholder.com/300x450/6366f1/FFFFFF?text=New+Movie', is_active: true, cinema_id: ''
+        poster_url: 'https://via.placeholder.com/300x450/6366f1/FFFFFF?text=New+Movie', is_active: true
       });
       setShowAddMovieModal(false);
     }, 'Movie added successfully!');
@@ -208,7 +207,7 @@ function AdminPanel() {
     
     
     await handleAdd('shows', newShow, setShows, () => {
-      setNewShow({ date: '', time: '', ticket_price: 15.0, is_active: true, movie_id: '', screen_id: '', cinema_id: '' });
+      setNewShow({ date: '', time: '', ticketPrice: 15.0, isActive: true, movieId: '', screenId: '', cinemaId: '' });
       setShowAddShowModal(false);
     }, 'Show added successfully!');
   };

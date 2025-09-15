@@ -2,6 +2,15 @@
 
 A comprehensive Spring Boot backend for a cinema booking system with real-time seat management, booking functionality, and admin features.
 
+
+
+User → Booking → Show → Movie (independent)
+                    ↓
+                  Screen → Cinema
+                    ↓
+                   Seat
+
+
 ## Tech Stack
 
 - **Backend Framework**: Spring Boot 3.2.0
@@ -94,6 +103,21 @@ cd cinema-booking-system/backend
        password: password
    ```
 
+
+   movies (independent)
+├── shows (movie_id → movies.id)
+    ├── screen_id → screens.id
+    └── bookings (show_id → shows.id)
+        └── seats (booking_id → bookings.id)
+
+cinemas
+└── screens (cinema_id → cinemas.id)
+    ├── shows (screen_id → screens.id)  
+    └── seats (screen_id → screens.id)
+
+users
+└── bookings (user_id → users.id)
+
 ### 3. Build and Run
 ```bash
 # Build the project
@@ -149,7 +173,7 @@ The application automatically creates sample data on first startup:
 
 ### Users
 - Admin: `admin@cinema.com` (Admin privileges)
-- User: `john@example.com` (Regular user)
+- User: `jatin@gmail.com` (Regular user)
 
 ### Cinemas
 - CineMax Downtown (2 screens, 2 movies)

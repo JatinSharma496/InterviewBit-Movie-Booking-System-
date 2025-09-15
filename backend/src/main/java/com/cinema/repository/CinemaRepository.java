@@ -15,8 +15,8 @@ public interface CinemaRepository extends JpaRepository<Cinema, Long> {
     Optional<Cinema> findByName(String name);
     
     @Query("SELECT DISTINCT c FROM Cinema c LEFT JOIN FETCH c.screens WHERE c.id = :id")
-    Optional<Cinema> findByIdWithScreensAndMovies(@Param("id") Long id);
+    Optional<Cinema> findByIdWithScreens(@Param("id") Long id);
     
     @Query("SELECT DISTINCT c FROM Cinema c LEFT JOIN FETCH c.screens")
-    List<Cinema> findAllWithScreensAndMovies();
+    List<Cinema> findAllWithScreens();
 }
