@@ -219,4 +219,4 @@ dist-ssr
 # Application specific
 application-local.yml
 application-dev.yml
-application-prod.yml
+application-prod.yml"*.mp4" 
