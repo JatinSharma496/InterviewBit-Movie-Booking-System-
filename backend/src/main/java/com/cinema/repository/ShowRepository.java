@@ -44,4 +44,12 @@ public interface ShowRepository extends JpaRepository<Show, Long> {
     // Find all shows for screens in a specific cinema (for cascade delete)
     @Query("SELECT s FROM Show s WHERE s.screen.cinema.id = :cinemaId")
     List<Show> findAllByCinemaId(@Param("cinemaId") Long cinemaId);
+    
+    // Find all shows for a specific screen (for cascade delete)
+    @Query("SELECT s FROM Show s WHERE s.screen.id = :screenId")
+    List<Show> findByScreenId(@Param("screenId") Long screenId);
+    
+    // Find all active shows that have passed their date (for automatic deactivation)
+    @Query("SELECT s FROM Show s WHERE s.isActive = true AND s.date < :currentDate")
+    List<Show> findActiveShowsBeforeDate(@Param("currentDate") LocalDate currentDate);
 }

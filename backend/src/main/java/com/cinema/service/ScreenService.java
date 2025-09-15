@@ -4,9 +4,11 @@ import com.cinema.dto.ScreenDto;
 import com.cinema.entity.Cinema;
 import com.cinema.entity.Screen;
 import com.cinema.entity.Seat;
+import com.cinema.entity.Show;
 import com.cinema.repository.CinemaRepository;
 import com.cinema.repository.ScreenRepository;
 import com.cinema.repository.SeatRepository;
+import com.cinema.repository.ShowRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,7 @@ public class ScreenService {
     private final ScreenRepository screenRepository;
     private final CinemaRepository cinemaRepository;
     private final SeatRepository seatRepository;
+    private final ShowRepository showRepository;
 
     public List<ScreenDto> getAllScreens() {
         return screenRepository.findAll().stream()
@@ -73,7 +76,24 @@ public class ScreenService {
     public void deleteScreen(Long id) {
         Screen screen = screenRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Screen not found with id: " + id));
+        
+        // Delete all shows related to this screen
+        List<Show> shows = showRepository.findByScreenId(id);
+        if (!shows.isEmpty()) {
+            showRepository.deleteAll(shows);
+            System.out.println("Deleted " + shows.size() + " shows related to screen: " + screen.getName());
+        }
+        
+        // Delete all seats related to this screen
+        List<Seat> seats = seatRepository.findByScreenId(id);
+        if (!seats.isEmpty()) {
+            seatRepository.deleteAll(seats);
+            System.out.println("Deleted " + seats.size() + " seats related to screen: " + screen.getName());
+        }
+        
+        // Finally delete the screen
         screenRepository.delete(screen);
+        System.out.println("Screen deleted: " + screen.getName());
     }
 
     private void createSeatsForScreen(Screen screen) {

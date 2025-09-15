@@ -16,7 +16,10 @@ function Navbar() {
     <nav className="bg-blue-600 text-white shadow-lg">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
-          <Link to="/" className="flex items-center space-x-2">
+          <Link 
+            to={state.isAdmin ? "/admin" : "/"} 
+            className="flex items-center space-x-2"
+          >
             <FaHome className="text-2xl" />
             <span className="text-xl font-bold">InterviewBit-Movie-Booking-System</span>
           </Link>

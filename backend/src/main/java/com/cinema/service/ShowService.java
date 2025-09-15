@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -61,6 +62,15 @@ public class ShowService {
                     ", Show date: " + showDto.getDate());
         }
 
+        // Validate show date is not today or in the past (must be tomorrow or future)
+        LocalDate today = LocalDate.now();
+        LocalDate tomorrow = today.plusDays(1);
+        if (showDto.getDate().isBefore(tomorrow)) {
+            throw new RuntimeException("Show cannot be scheduled for today or in the past. " +
+                    "Show date: " + showDto.getDate() + 
+                    ", Earliest allowed date: " + tomorrow);
+        }
+
         // Validate no time conflicts on the same screen
         validateNoTimeConflicts(showDto.getScreenId(), showDto.getDate(), showDto.getTime(), 
                               movie.getDuration(), null);
@@ -95,6 +105,15 @@ public class ShowService {
             throw new RuntimeException("Show cannot be scheduled before movie release date. " +
                     "Movie release date: " + movie.getReleaseDate() + 
                     ", Show date: " + showDto.getDate());
+        }
+
+        // Validate show date is not today or in the past (must be tomorrow or future)
+        LocalDate today = LocalDate.now();
+        LocalDate tomorrow = today.plusDays(1);
+        if (showDto.getDate().isBefore(tomorrow)) {
+            throw new RuntimeException("Show cannot be scheduled for today or in the past. " +
+                    "Show date: " + showDto.getDate() + 
+                    ", Earliest allowed date: " + tomorrow);
         }
 
         // Validate no time conflicts on the same screen (excluding current show)

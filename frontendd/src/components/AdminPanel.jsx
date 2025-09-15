@@ -20,6 +20,7 @@ function AdminPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [popupError, setPopupError] = useState(null);
 
 
   // Modal states
@@ -141,6 +142,12 @@ function AdminPanel() {
       
       if (!response.ok) {
         const errorData = await response.json();
+        // For show conflicts, use popup error instead of global error
+        if (endpoint === 'shows' && errorData.error && errorData.error.includes('Time conflict')) {
+          setPopupError(errorData.error);
+          setTimeout(() => setPopupError(null), 5000);
+          return;
+        }
         throw new Error(errorData.error || `Failed to update ${endpoint}: ${response.status}`);
       }
       
@@ -159,7 +166,51 @@ function AdminPanel() {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error(`Failed to delete ${endpoint}: ${response.status}`);
+      
+      // Handle cascade deletion for different entities
+      if (endpoint === 'screens') {
+        // Remove related shows from state
+        setShows(prev => prev.filter(show => show.screenId !== id));
+        setSuccessMessage('Screen and all related shows deleted successfully!');
+      } else if (endpoint === 'movies') {
+        // Remove related shows from state
+        setShows(prev => prev.filter(show => show.movieId !== id));
+        setSuccessMessage('Movie and all related shows deleted successfully!');
+      } else if (endpoint === 'cinemas') {
+        // Remove related shows and screens from state (screens are linked to cinema)
+        setShows(prev => prev.filter(show => show.cinemaId !== id));
+        setScreens(prev => prev.filter(screen => screen.cinemaId !== id));
+        setSuccessMessage('Cinema and all related shows and screens deleted successfully!');
+      } else {
+        setSuccessMessage(`${endpoint} deleted successfully!`);
+      }
+      
+      // Refresh data to ensure consistency
+      if (['screens', 'movies', 'cinemas'].includes(endpoint)) {
+        try {
+          const [showsResponse, screensResponse] = await Promise.all([
+            fetch(`${API_BASE_URL}/api/shows`),
+            fetch(`${API_BASE_URL}/api/screens`)
+          ]);
+          
+          if (showsResponse.ok) {
+            const freshShows = await showsResponse.json();
+            setShows(freshShows);
+          }
+          
+          if (screensResponse.ok) {
+            const freshScreens = await screensResponse.json();
+            setScreens(freshScreens);
+          }
+        } catch (refreshError) {
+          console.warn('Failed to refresh data:', refreshError);
+        }
+      }
+      
+      // Remove the main item
       setter(prev => prev.filter(item => item.id !== id));
+      
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (e) {
       setError(e.message);
     }
@@ -205,11 +256,33 @@ function AdminPanel() {
       return;
     }
     
-    
-    await handleAdd('shows', newShow, setShows, () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/shows`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newShow)
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        // For show conflicts, use popup error instead of global error
+        if (errorData.error && errorData.error.includes('Time conflict')) {
+          setPopupError(errorData.error);
+          setTimeout(() => setPopupError(null), 5000);
+          return;
+        }
+        throw new Error(errorData.error || `Failed to add show: ${response.status}`);
+      }
+      
+      const addedItem = await response.json();
+      setShows(prev => [...prev, addedItem]);
       setNewShow({ date: '', time: '', ticketPrice: 15.0, isActive: true, movieId: '', screenId: '', cinemaId: '' });
       setShowAddShowModal(false);
-    }, 'Show added successfully!');
+      setSuccessMessage('Show added successfully!');
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (e) {
+      setError(e.message);
+    }
   };
 
 
@@ -248,9 +321,29 @@ function AdminPanel() {
     );
   };
 
+  // Popup error component for non-critical errors
+  const PopupError = () => {
+    if (!popupError) return null;
+    return (
+      <div className="fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center space-x-2">
+        <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
+          <span className="text-red-500 text-sm">⚠</span>
+        </div>
+        <span>{popupError}</span>
+        <button 
+          onClick={() => setPopupError(null)}
+          className="ml-2 text-white hover:text-gray-200"
+        >
+          ×
+        </button>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <SuccessMessage />
+      <PopupError />
       {/* Header */}
       <div className="bg-white shadow-lg border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -345,6 +438,7 @@ function AdminPanel() {
         movies={movies}
         screens={screens}
         cinemas={cinemas}
+        shows={shows}
         isEdit={showEditShowModal}
       />
     </div>
@@ -604,6 +698,7 @@ function ShowsTab({ shows, setShows, movies, screens, cinemas, setShowAddShowMod
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Movie</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cinema</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Screen</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
@@ -617,6 +712,11 @@ function ShowsTab({ shows, setShows, movies, screens, cinemas, setShowAddShowMod
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">
                       {movies.find(m => m.id === show.movie_id)?.title || 'Unknown Movie'}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
+                      {cinemas.find(c => c.id === screens.find(s => s.id === show.screen_id)?.cinema_id)?.name || 'Unknown Cinema'}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
