@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+</head>
+<body>
+    <h1>API Connection Test</h1>
+    <button onclick="testAPI()">Test API Connection</button>
+    <button onclick="testLogin()">Test Login</button>
+    <div id="result"></div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8080';
+        
+        function getApiBaseUrl() {
+            const hostname = window.location.hostname;
+            
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                return 'http://localhost:8080';
+            }
+            
+            return `http://${hostname}:8080`;
+        }
+
+        async function testAPI() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing API connection...';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/users`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = '✅ API connection successful!';
+                } else {
+                    resultDiv.innerHTML = `❌ API connection failed: ${response.status} ${response.statusText}`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `❌ API connection error: ${error.message}`;
+            }
+        }
+
+        async function testLogin() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing login...';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/users/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'test@example.com',
+                        password: 'password123'
+                    }),
+                });
+                
+                if (response.ok) {
+                    const user = await response.json();
+                    resultDiv.innerHTML = `✅ Login successful! User: ${user.name}`;
+                } else {
+                    resultDiv.innerHTML = `❌ Login failed: ${response.status} ${response.statusText}`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Login error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

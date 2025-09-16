@@ -2,8 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { FaArrowLeft, FaChair, FaCheck, FaTimes } from 'react-icons/fa';
-// Hardcoded API URL
-const API_BASE_URL = 'http://localhost:8080';
+import API_BASE_URL from '../config/api';
 
 function SeatSelection() {
   const { cinemaId, movieId, showtimeId } = useParams();

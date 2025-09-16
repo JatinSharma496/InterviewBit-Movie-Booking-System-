@@ -1,4 +1,5 @@
 import { createContext, useContext, useReducer, useEffect } from 'react';
+import API_BASE_URL from '../config/api';
 
 const AppContext = createContext();
 
@@ -71,8 +72,6 @@ function appReducer(state, action) {
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
-  // Hardcoded API URL
-  const API_BASE_URL = 'http://localhost:8080';
 
   // Fetch cinemas from the backend on mount
   useEffect(() => {

@@ -11,6 +11,7 @@ import AdminPanel from './components/AdminPanel';
 import UnifiedAuth from './components/UnifiedAuth';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
+import DebugInfo from './components/DebugInfo';
 import './App.css';
 
 function AppContent() {
@@ -51,6 +52,7 @@ function AppContent() {
                     <BookingHistory />
                   </ProtectedRoute>
                 } />
+                <Route path="/debug" element={<DebugInfo />} />
               </Routes>
             </div>
           </main>

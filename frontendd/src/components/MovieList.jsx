@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { FaArrowLeft, FaClock, FaStar, FaCalendarAlt } from 'react-icons/fa';
-// Hardcoded API URL
-const API_BASE_URL = 'http://localhost:8080';
+import API_BASE_URL from '../config/api';
 
 function MovieList() {
   const { cinemaId } = useParams();

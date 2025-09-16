@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { FaUser, FaUserShield, FaEye, FaEyeSlash } from 'react-icons/fa';
-// Hardcoded API URL
-const API_BASE_URL = 'http://localhost:8080';
+import API_BASE_URL from '../config/api';
 
 function UnifiedAuth() {
   const [isLogin, setIsLogin] = useState(true);

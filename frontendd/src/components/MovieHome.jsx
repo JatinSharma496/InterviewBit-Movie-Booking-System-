@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { FaPlay, FaClock, FaStar, FaCalendarAlt } from 'react-icons/fa';
-// Hardcoded API URL
-const API_BASE_URL = 'http://localhost:8080';
+import API_BASE_URL from '../config/api';
 
 function MovieHome() {
   const { state } = useApp();

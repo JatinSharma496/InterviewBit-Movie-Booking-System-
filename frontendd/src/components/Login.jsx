@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-// Hardcoded API URL
-const API_BASE_URL = 'http://localhost:8080';
+import API_BASE_URL from '../config/api';
 
 function Login() {
   const [formData, setFormData] = useState({

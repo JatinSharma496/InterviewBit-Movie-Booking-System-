@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { FaPlus, FaEdit, FaTrash, FaEye, FaChair, FaUser, FaFilm, FaBuilding, FaCalendarAlt, FaTicketAlt, FaCog } from 'react-icons/fa';
 import { MovieModal, CinemaModal, ScreenModal, ShowModal } from './AdminModals';
-// Hardcoded API URL
-const API_BASE_URL = 'http://localhost:8080';
+import API_BASE_URL from '../config/api';
 
 function AdminPanel() {
   const { state } = useApp();

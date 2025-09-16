@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { FaCheckCircle, FaTicketAlt, FaCalendarAlt, FaClock, FaMapMarkerAlt, FaChair, FaUser, FaEnvelope, FaPhone } from 'react-icons/fa';
-// Hardcoded API URL
-const API_BASE_URL = 'http://localhost:8080';
+import API_BASE_URL from '../config/api';
 
 function BookingConfirmation() {
   const { bookingId } = useParams();

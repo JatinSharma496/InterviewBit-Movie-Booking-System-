@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { FaClock, FaCalendarAlt, FaMapMarkerAlt, FaPhone, FaStar, FaArrowLeft } from 'react-icons/fa';
+import API_BASE_URL from '../config/api';
 
 function MovieDetail() {
   const { movieId } = useParams();
@@ -16,9 +17,6 @@ function MovieDetail() {
   const fetchMovieDetails = async () => {
     try {
       setLoading(true);
-      
-      // Hardcoded API URL
-      const API_BASE_URL = 'http://localhost:8080';
       
       // Fetch movie details
       const movieResponse = await fetch(`${API_BASE_URL}/api/movies/${movieId}`);
