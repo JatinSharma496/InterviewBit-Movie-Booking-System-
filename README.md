@@ -6,7 +6,7 @@
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-3.3.0-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)  
 
-> **🎯   InterviewBit SDE Intern Assignment** - A full-stack web application similar to BookMyShow with real-time seat booking, admin panel, and comprehensive booking management.
+> **🎯 A full-stack web application similar to BookMyShow with real-time seat booking, admin panel, and comprehensive booking management.
 
 ---
 
